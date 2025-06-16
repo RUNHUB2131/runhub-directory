@@ -6,11 +6,15 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate": "node migrate-webflow-data.js",
+    "verify": "node verify-migration.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
     "@types/mapbox-gl": "^3.4.1",
+    "csv-parser": "^3.0.0",
+    "dotenv": "^16.0.0",
     "lucide-react": "^0.515.0",
     "mapbox-gl": "^3.12.0",
     "next": "15.3.3",

@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { RunClub } from '@/types';
 import { MapPin } from 'lucide-react';
@@ -48,8 +50,8 @@ export default function ClubCard({ club, variant = 'dark' }: ClubCardProps) {
   const terrainTags = getTerrainTags();
   const daysOfWeek = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
-  // Generate a placeholder image URL (you can replace this with actual club images)
-  const placeholderImage = `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=250&fit=crop&crop=center`;
+  // Use club photo if available, otherwise fallback to placeholder
+  const clubImage = club.club_photo || `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=250&fit=crop&crop=center`;
 
   // Border color based on variant
   const borderColor = variant === 'light' ? '#021fdf' : 'white';
@@ -64,9 +66,13 @@ export default function ClubCard({ club, variant = 'dark' }: ClubCardProps) {
           {/* Club Photo */}
           <div className="mb-4">
             <img
-              src={placeholderImage}
+              src={clubImage}
               alt={`${club.name} group photo`}
               className="w-full h-32 object-cover rounded-xl"
+              onError={(e) => {
+                // Fallback to placeholder if image fails to load
+                e.currentTarget.src = `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=250&fit=crop&crop=center`;
+              }}
             />
           </div>
 

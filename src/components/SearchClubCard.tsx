@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { RunClub } from '@/types';
 import { MapPin, Clock, Users } from 'lucide-react';
@@ -47,8 +49,8 @@ export default function SearchClubCard({ club, isHighlighted = false }: SearchCl
   const meetingDay = getMeetingDay();
   const terrainTags = getTerrainTags();
 
-  // Generate a placeholder image URL
-  const placeholderImage = `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=160&fit=crop&crop=center`;
+  // Use club photo if available, otherwise fallback to placeholder
+  const clubImage = club.club_photo || `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=160&fit=crop&crop=center`;
 
   return (
     <Link href={`/clubs/${club.id}`} className="block">
@@ -61,9 +63,13 @@ export default function SearchClubCard({ club, isHighlighted = false }: SearchCl
           {/* Club Photo - Smaller and more compact */}
           <div className="mb-3">
             <img
-              src={placeholderImage}
+              src={clubImage}
               alt={`${club.name} group photo`}
               className="w-full h-20 object-cover rounded-lg"
+              onError={(e) => {
+                // Fallback to placeholder if image fails to load
+                e.currentTarget.src = `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=160&fit=crop&crop=center`;
+              }}
             />
           </div>
 
