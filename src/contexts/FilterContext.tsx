@@ -1,13 +1,16 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { FilterState, RunClub } from '@/types';
-import { sampleClubs } from '@/data/sampleClubs';
+import { getAllClubs } from '@/lib/supabase';
 
 interface FilterContextType {
   filters: FilterState;
   setFilters: (filters: FilterState) => void;
   filteredClubs: RunClub[];
+  allClubs: RunClub[];
+  loading: boolean;
+  error: string | null;
   resetFilters: () => void;
 }
 
@@ -16,7 +19,6 @@ const initialFilters: FilterState = {
   states: [],
   meetingDays: [],
   timeOfDay: [],
-  difficulty: [],
   distanceFocus: []
 };
 
@@ -24,9 +26,35 @@ const FilterContext = createContext<FilterContextType | undefined>(undefined);
 
 export function FilterProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
+  const [allClubs, setAllClubs] = useState<RunClub[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load clubs from database on mount
+  useEffect(() => {
+    const loadClubs = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const clubs = await getAllClubs();
+        setAllClubs(clubs);
+      } catch (err) {
+        console.error('Error loading clubs in FilterContext:', err);
+        setError('Failed to load clubs. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadClubs();
+  }, []);
 
   const filteredClubs = React.useMemo(() => {
-    return sampleClubs.filter(club => {
+    if (loading || allClubs.length === 0) {
+      return [];
+    }
+
+    return allClubs.filter(club => {
       // Search query filter
       if (filters.searchQuery) {
         const query = filters.searchQuery.toLowerCase();
@@ -54,10 +82,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      // Difficulty filter
-      if (filters.difficulty.length > 0 && !filters.difficulty.includes(club.difficulty)) {
-        return false;
-      }
+
 
       // Distance focus filter
       if (filters.distanceFocus.length > 0) {
@@ -69,7 +94,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
 
       return true;
     });
-  }, [filters]);
+  }, [filters, allClubs, loading]);
 
   const resetFilters = () => {
     setFilters(initialFilters);
@@ -80,6 +105,9 @@ export function FilterProvider({ children }: { children: ReactNode }) {
       filters,
       setFilters,
       filteredClubs,
+      allClubs,
+      loading,
+      error,
       resetFilters
     }}>
       {children}

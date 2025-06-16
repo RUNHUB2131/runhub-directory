@@ -84,7 +84,6 @@ export interface FilterState {
   states: string[];
   meetingDays: string[];
   timeOfDay: string[];
-  difficulty: string[];
   distanceFocus: string[];
 }
 

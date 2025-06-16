@@ -9,6 +9,22 @@ interface ClubCardProps {
   variant?: 'dark' | 'light'; // dark for blue backgrounds, light for white backgrounds
 }
 
+// Separate client component for image with error handling
+function ClubImage({ src, alt, className }: { src: string; alt: string; className: string }) {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=250&fit=crop&crop=center`;
+  };
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={handleImageError}
+    />
+  );
+}
+
 export default function ClubCard({ club, variant = 'dark' }: ClubCardProps) {
   // Helper function to get meeting day from schedule
   const getMeetingDay = () => {
@@ -31,8 +47,14 @@ export default function ClubCard({ club, variant = 'dark' }: ClubCardProps) {
     return 'Mo'; // Default
   };
 
-  // Helper function to get terrain tags from description
+  // Use actual terrain data from database
   const getTerrainTags = () => {
+    if (club.terrain && club.terrain.length > 0) {
+      // Use actual terrain data, limit to 2 tags and uppercase them
+      return club.terrain.slice(0, 2).map(terrain => terrain.toUpperCase());
+    }
+    
+    // Fallback: extract from description if no terrain data
     const desc = club.description.toLowerCase();
     const tags = [];
     
@@ -65,14 +87,10 @@ export default function ClubCard({ club, variant = 'dark' }: ClubCardProps) {
         <div className="bg-white rounded-2xl p-4 cursor-pointer h-full flex flex-col">
           {/* Club Photo */}
           <div className="mb-4">
-            <img
+            <ClubImage
               src={clubImage}
               alt={`${club.name} group photo`}
               className="w-full h-32 object-cover rounded-xl"
-              onError={(e) => {
-                // Fallback to placeholder if image fails to load
-                e.currentTarget.src = `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=250&fit=crop&crop=center`;
-              }}
             />
           </div>
 

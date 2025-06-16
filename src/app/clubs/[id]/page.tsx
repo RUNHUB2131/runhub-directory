@@ -20,19 +20,7 @@ interface ClubPageProps {
   params: Promise<{ id: string }>;
 }
 
-// Helper function to get difficulty color styling
-function getDifficultyColor(difficulty: string) {
-  switch (difficulty) {
-    case 'beginner':
-      return 'bg-green-50 text-green-700 border-green-200';
-    case 'intermediate':
-      return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-    case 'advanced':
-      return 'bg-red-50 text-red-700 border-red-200';
-    default:
-      return 'bg-blue-50 text-blue-700 border-blue-200';
-  }
-}
+
 
 // Helper function to get time of day color styling
 function getTimeOfDayColor(timeOfDay: string) {
@@ -89,18 +77,27 @@ export default async function ClubPage({ params }: ClubPageProps) {
             {/* Header */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex flex-wrap gap-3 mb-4">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getDifficultyColor(club.difficulty)}`}>
-                  {club.difficulty.charAt(0).toUpperCase() + club.difficulty.slice(1)}
-                </span>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getTimeOfDayColor(club.time_of_day)}`}>
                   {club.time_of_day.charAt(0).toUpperCase() + club.time_of_day.slice(1)}
                 </span>
                 <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 border border-gray-200">
                   {club.state}
                 </span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${
+                  club.club_type === 'everyone' 
+                    ? 'bg-green-100 text-green-800 border-green-200' 
+                    : 'bg-purple-100 text-purple-800 border-purple-200'
+                }`}>
+                  {club.club_type === 'everyone' ? 'Everyone' : club.club_type.charAt(0).toUpperCase() + club.club_type.slice(1).replace('-', ' ')}
+                </span>
                 {club.is_paid === 'paid' && (
-                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 border border-orange-200">
                     Paid Club
+                  </span>
+                )}
+                {club.is_paid === 'free' && (
+                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                    Free Club
                   </span>
                 )}
               </div>
@@ -251,10 +248,7 @@ export default async function ClubPage({ params }: ClubPageProps) {
               <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Info</h2>
               
               <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Difficulty Level</span>
-                  <span className="font-medium text-gray-900 capitalize">{club.difficulty}</span>
-                </div>
+
                 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Time of Day</span>

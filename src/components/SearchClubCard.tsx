@@ -9,6 +9,22 @@ interface SearchClubCardProps {
   isHighlighted?: boolean;
 }
 
+// Separate client component for image with error handling
+function SearchClubImage({ src, alt, className }: { src: string; alt: string; className: string }) {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=160&fit=crop&crop=center`;
+  };
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={handleImageError}
+    />
+  );
+}
+
 export default function SearchClubCard({ club, isHighlighted = false }: SearchClubCardProps) {
   // Helper function to get meeting day from schedule
   const getMeetingDay = () => {
@@ -31,8 +47,14 @@ export default function SearchClubCard({ club, isHighlighted = false }: SearchCl
     return 'Mon'; // Default
   };
 
-  // Helper function to get terrain tags from description
+  // Use actual terrain data from database
   const getTerrainTags = () => {
+    if (club.terrain && club.terrain.length > 0) {
+      // Use actual terrain data, limit to 1 tag for compact view and uppercase it
+      return [club.terrain[0].toUpperCase()];
+    }
+    
+    // Fallback: extract from description if no terrain data
     const desc = club.description.toLowerCase();
     const tags = [];
     
@@ -62,14 +84,10 @@ export default function SearchClubCard({ club, isHighlighted = false }: SearchCl
         <div className="p-3">
           {/* Club Photo - Smaller and more compact */}
           <div className="mb-3">
-            <img
+            <SearchClubImage
               src={clubImage}
               alt={`${club.name} group photo`}
               className="w-full h-20 object-cover rounded-lg"
-              onError={(e) => {
-                // Fallback to placeholder if image fails to load
-                e.currentTarget.src = `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=160&fit=crop&crop=center`;
-              }}
             />
           </div>
 
@@ -103,16 +121,13 @@ export default function SearchClubCard({ club, isHighlighted = false }: SearchCl
             }
           </p>
 
-          {/* Terrain Tag and Difficulty - Horizontal layout */}
-          <div className="flex items-center justify-between">
+          {/* Terrain Tag */}
+          <div className="flex items-center">
             <span
               className="px-2 py-1 text-white font-bold text-xs rounded-full"
               style={{ backgroundColor: '#021fdf' }}
             >
               {terrainTags[0]}
-            </span>
-            <span className="text-xs font-medium" style={{ color: '#021fdf' }}>
-              {club.difficulty}
             </span>
           </div>
         </div>
