@@ -1,0 +1,59 @@
+'use client';
+
+import Link from 'next/link';
+
+export default function Footer() {
+  return (
+    <footer className="text-white py-12" style={{ backgroundColor: '#021fdf' }}>
+      {/* RUNHUB Repeated Text with Sliding Animation - Full Width */}
+      <div className="text-center mb-8 overflow-hidden relative w-full">
+        <div className="inline-block animate-slide-left whitespace-nowrap text-2xl font-black opacity-20">
+          RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB RUNHUB
+        </div>
+      </div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Navigation Links */}
+          <div>
+            <div className="space-y-3">
+              <Link href="/" className="block text-white hover:opacity-80 transition-colors">Home</Link>
+              <Link href="/search" className="block text-white hover:opacity-80 transition-colors">Search</Link>
+                              <Link href="/all-clubs" className="block text-white hover:opacity-80 transition-colors">All Clubs</Link>
+              <Link href="/faq" className="block text-white hover:opacity-80 transition-colors">FAQ</Link>
+              <Link href="/about" className="block text-white hover:opacity-80 transition-colors">About Us</Link>
+              <Link href="/contact" className="block text-white hover:opacity-80 transition-colors">Contact Us</Link>
+              <Link href="/add-club" className="block text-white hover:opacity-80 transition-colors">Add Your Club</Link>
+            </div>
+          </div>
+          
+          {/* Newsletter */}
+          <div className="md:col-span-2">
+            <h3 className="text-xl font-bold mb-4 text-white">SIGN UP TO OUR NEWSLETTER</h3>
+            <div className="flex max-w-md">
+              <input
+                type="email"
+                placeholder="Enter your email address"
+                className="flex-1 px-4 py-3 rounded-l-full border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-white/70 focus:outline-none focus:border-white/40 focus:bg-white/20 transition-all"
+              />
+              <button className="px-6 py-3 bg-white text-blue-600 font-bold rounded-r-full hover:bg-gray-100 transition-colors">
+                SUBSCRIBE
+              </button>
+            </div>
+            <p className="text-sm text-white/80 mt-2">
+              By subscribing you agree to our <Link href="/privacy" className="underline text-white hover:text-white/80 transition-colors">privacy policy</Link>
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex justify-between items-center mt-8 pt-8 border-t border-blue-800">
+          <div className="text-2xl font-black">RUNHUB</div>
+          <div className="text-blue-200">© 2025, RUNHUB</div>
+          <div className="text-blue-200">
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+} 

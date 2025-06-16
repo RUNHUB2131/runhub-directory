@@ -1,103 +1,152 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import Link from 'next/link';
+import { useState } from 'react';
+import Navigation from '@/components/Navigation';
+import ClubCard from '@/components/ClubCard';
+import Button from '@/components/Button';
+import Footer from '@/components/Footer';
+import { sampleClubs } from '@/data/sampleClubs';
+import { Search, MapPin, Users, Trophy, Plus } from 'lucide-react';
+
+export default function HomePage() {
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Get featured clubs (first 6 clubs)
+  const featuredClubs = sampleClubs.slice(0, 6);
+  
+  // Get new clubs (next 3 clubs)
+  const newClubs = sampleClubs.slice(6, 9);
+  
+  // Simple search for preview
+  const searchResults = searchQuery.length > 2 
+    ? sampleClubs.filter(club => 
+        club.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        club.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        club.state.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 3)
+    : [];
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      // Navigate to search page with query
+      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-white">
+      <Navigation />
+      
+      {/* Hero Section - Matching the provided design */}
+      <div className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-5xl md:text-7xl font-black mb-12" style={{ color: '#021fdf' }}>
+              FIND THE PERFECT RUN CLUB
+            </h1>
+            
+            {/* Search Bar - Matching the exact design */}
+            <div className="max-w-4xl mx-auto mb-8">
+              <div className="relative">
+                <div 
+                  className="flex items-center rounded-full border-4 overflow-hidden"
+                  style={{ borderColor: '#021fdf' }}
+                >
+                  <input
+                    type="text"
+                    placeholder="City, Town, Suburb"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="flex-1 px-8 py-6 text-lg text-gray-600 bg-white focus:outline-none placeholder-gray-400"
+                    style={{ backgroundColor: 'white' }}
+                  />
+                  <button
+                    onClick={handleSearch}
+                    className="px-12 py-6 text-white font-bold text-lg rounded-full hover:opacity-90 transition-colors"
+                    style={{ backgroundColor: '#021fdf' }}
+                  >
+                    SEARCH
+                  </button>
+                </div>
+              </div>
+              
+              {/* Search Results Preview */}
+              {searchResults.length > 0 && (
+                <div className="mt-4 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-left">
+                  <h3 className="text-gray-900 font-semibold mb-2">Quick Results:</h3>
+                  {searchResults.map(club => (
+                    <Link
+                      key={club.id}
+                      href={`/clubs/${club.id}`}
+                      className="block p-2 hover:bg-gray-50 rounded-md transition-colors"
+                    >
+                      <div className="text-gray-900 font-medium">{club.name}</div>
+                      <div className="text-gray-600 text-sm">{club.location}</div>
+                    </Link>
+                  ))}
+                  <Link
+                    href="/directory"
+                    className="block mt-2 text-sm font-medium hover:opacity-80 transition-colors"
+                    style={{ color: '#021fdf' }}
+                  >
+                    View all results →
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      {/* Featured Run Clubs Section */}
+      <div className="py-16" style={{ backgroundColor: '#021fdf' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-black mb-12 text-center text-white">
+            FEATURED RUN CLUBS
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr">
+            {featuredClubs.map(club => (
+              <ClubCard key={club.id} club={club} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* New Run Clubs Section */}
+      <div className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-black mb-12 text-center" style={{ color: '#021fdf' }}>
+            NEW RUN CLUBS
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr">
+            {newClubs.map(club => (
+              <ClubCard key={club.id} club={club} variant="light" />
+            ))}
+          </div>
+          
+          <div className="text-center mt-12">
+            <Button href="/all-clubs" variant="secondary" size="lg">
+              <span className="inline-flex items-center">
+                View All Clubs
+                <MapPin className="ml-2 h-5 w-5" />
+              </span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+
+      <Footer />
     </div>
   );
 }

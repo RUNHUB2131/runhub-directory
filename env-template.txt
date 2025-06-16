@@ -1,0 +1,17 @@
+# Copy this to .env.local and fill in your values
+
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
+# Mapbox Configuration
+NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token_here
+
+# Resend Email Configuration (for CMS workflow)
+RESEND_API_KEY=your_resend_api_key_here
+
+# Admin Email (receives club submissions)
+RUNHUB_ADMIN_EMAIL=admin@runhubdirectory.com.au
+
+# App URL (for email links)
+NEXT_PUBLIC_APP_URL=https://yoursite.com 
