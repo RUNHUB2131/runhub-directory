@@ -14,6 +14,7 @@ export default function AllClubsPage() {
   const [clubs, setClubs] = useState<RunClub[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Load clubs on component mount
   useEffect(() => {
@@ -48,6 +49,18 @@ export default function AllClubsPage() {
       club.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery, clubs]);
+
+  // Pagination logic
+  const clubsPerPage = 50;
+  const totalPages = Math.ceil(filteredClubs.length / clubsPerPage);
+  const startIndex = (currentPage - 1) * clubsPerPage;
+  const endIndex = startIndex + clubsPerPage;
+  const currentClubs = filteredClubs.slice(startIndex, endIndex);
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const handleClearSearch = () => {
     setSearchQuery('');
@@ -93,17 +106,29 @@ export default function AllClubsPage() {
         </div>
 
         {/* Search Bar */}
-        <div className="max-w-2xl mx-auto mb-8">
+        <div className="max-w-4xl mx-auto mb-8">
           <div className="relative">
-            <input
-              type="text"
-              placeholder="Search clubs by name, location, or description..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-6 py-4 pr-12 text-lg rounded-full border-4 border-white focus:outline-none focus:ring-4 focus:ring-white focus:ring-opacity-50"
-              style={{ color: '#021fdf' }}
-            />
-            <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-6 w-6" style={{ color: '#021fdf' }} />
+            <div 
+              className="flex items-center rounded-full border-4 overflow-hidden"
+              style={{ borderColor: '#f0f0f0' }}
+            >
+                              <input
+                  type="text"
+                  placeholder="Search clubs by name, location, or description..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && setSearchQuery(searchQuery)}
+                  className="flex-1 px-8 py-6 text-lg focus:outline-none placeholder-gray-300"
+                  style={{ backgroundColor: '#021fdf', color: '#f0f0f0' }}
+                />
+              <button
+                onClick={() => setSearchQuery(searchQuery)}
+                className="px-12 py-6 font-bold text-lg rounded-full hover:opacity-90 transition-colors"
+                style={{ backgroundColor: '#f0f0f0', color: '#021fdf' }}
+              >
+                SEARCH
+              </button>
+            </div>
           </div>
         </div>
 
@@ -115,11 +140,41 @@ export default function AllClubsPage() {
 
         {/* Club Cards Grid */}
         {filteredClubs.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr">
-            {filteredClubs.map(club => (
-              <ClubCard key={club.id} club={club} variant="dark" />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr">
+              {currentClubs.map(club => (
+                <ClubCard key={club.id} club={club} variant="dark" />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center gap-4 mt-12">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-8 py-3 font-bold text-lg rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ 
+                    backgroundColor: currentPage === 1 ? '#f0f0f0' : '#f0f0f0', 
+                    color: currentPage === 1 ? '#ccc' : '#021fdf' 
+                  }}
+                >
+                  PREVIOUS
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-8 py-3 font-bold text-lg rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ 
+                    backgroundColor: currentPage === totalPages ? '#f0f0f0' : '#f0f0f0', 
+                    color: currentPage === totalPages ? '#ccc' : '#021fdf' 
+                  }}
+                >
+                  NEXT
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           /* No Results */
           <div className="text-center py-20">

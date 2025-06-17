@@ -4,7 +4,16 @@ import { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Button from '@/components/Button';
 import Footer from '@/components/Footer';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Plus, Trash2 } from 'lucide-react';
+
+interface RunSession {
+  day: string;
+  time: string;
+  location: string;
+  run_type: string;
+  distance: string;
+  description?: string;
+}
 
 export default function AddClubPage() {
   const [formData, setFormData] = useState({
@@ -20,7 +29,16 @@ export default function AddClubPage() {
     state: '',
     latitude: '',
     longitude: '',
-    runDetails: ['', '', '', '', '', '', ''], // Up to 7 run details
+    runSessions: [
+      {
+        day: '',
+        time: '',
+        location: '',
+        run_type: '',
+        distance: '',
+        description: ''
+      }
+    ] as RunSession[],
     runDays: [] as string[],
     clubType: 'everyone',
     isPaid: 'free',
@@ -42,11 +60,38 @@ export default function AddClubPage() {
     }));
   };
 
-  const handleRunDetailChange = (index: number, value: string) => {
+  const handleRunSessionChange = (index: number, field: keyof RunSession, value: string) => {
     setFormData(prev => ({
       ...prev,
-      runDetails: prev.runDetails.map((detail, i) => i === index ? value : detail)
+      runSessions: prev.runSessions.map((session, i) => 
+        i === index ? { ...session, [field]: value } : session
+      )
     }));
+  };
+
+  const addRunSession = () => {
+    if (formData.runSessions.length < 7) {
+      setFormData(prev => ({
+        ...prev,
+        runSessions: [...prev.runSessions, {
+          day: '',
+          time: '',
+          location: '',
+          run_type: '',
+          distance: '',
+          description: ''
+        }]
+      }));
+    }
+  };
+
+  const removeRunSession = (index: number) => {
+    if (formData.runSessions.length > 1) {
+      setFormData(prev => ({
+        ...prev,
+        runSessions: prev.runSessions.filter((_, i) => i !== index)
+      }));
+    }
   };
 
   const handleArrayChange = (field: 'runDays' | 'extracurriculars' | 'terrain', value: string) => {
@@ -74,13 +119,26 @@ export default function AddClubPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate that at least one run session has required fields
+    const validRunSessions = formData.runSessions.filter(session => 
+      session.day && session.time && session.location && session.run_type
+    );
+    
+    if (validRunSessions.length === 0) {
+      alert('Please fill in at least one complete run session (day, time, location, and run type are required)');
+      return;
+    }
+    
     try {
       const response = await fetch('/api/submit-club', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          runSessions: validRunSessions
+        }),
       });
 
       const result = await response.json();
@@ -373,26 +431,147 @@ export default function AddClubPage() {
               Run Details
             </h2>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
               <p className="text-sm text-gray-600 mb-4">
-                Add up to 7 different run sessions (clubs that meet on multiple days a week)
+                Add up to 7 different run sessions. Each session represents a different run your club offers (different days, times, or types of runs).
               </p>
-              {formData.runDetails.map((detail, index) => (
-                <div key={index}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Run {index + 1} Details {index === 0 ? '*' : ''}
-                  </label>
-                  <textarea
-                    value={detail}
-                    onChange={(e) => handleRunDetailChange(index, e.target.value)}
-                    required={index === 0}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                    style={{ '--tw-ring-color': '#021fdf' } as any}
-                    placeholder={`Describe run ${index + 1} - time, distance, pace, meeting point, etc.`}
-                  />
+              
+              {formData.runSessions.map((session, index) => (
+                <div key={index} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Run Session {index + 1}
+                    </h3>
+                    {formData.runSessions.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeRunSession(index)}
+                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                        title="Remove this run session"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Day *
+                      </label>
+                      <select
+                        value={session.day}
+                        onChange={(e) => handleRunSessionChange(index, 'day', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
+                        style={{ '--tw-ring-color': '#021fdf' } as any}
+                        required={index === 0}
+                      >
+                        <option value="">Select Day</option>
+                        <option value="monday">Monday</option>
+                        <option value="tuesday">Tuesday</option>
+                        <option value="wednesday">Wednesday</option>
+                        <option value="thursday">Thursday</option>
+                        <option value="friday">Friday</option>
+                        <option value="saturday">Saturday</option>
+                        <option value="sunday">Sunday</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Time *
+                      </label>
+                      <input
+                        type="time"
+                        value={session.time}
+                        onChange={(e) => handleRunSessionChange(index, 'time', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
+                        style={{ '--tw-ring-color': '#021fdf' } as any}
+                        required={index === 0}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Distance
+                      </label>
+                      <input
+                        type="text"
+                        value={session.distance}
+                        onChange={(e) => handleRunSessionChange(index, 'distance', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
+                        style={{ '--tw-ring-color': '#021fdf' } as any}
+                        placeholder="e.g., 5km, 10-15km, Various"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2 lg:col-span-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Meeting Location *
+                      </label>
+                      <input
+                        type="text"
+                        value={session.location}
+                        onChange={(e) => handleRunSessionChange(index, 'location', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
+                        style={{ '--tw-ring-color': '#021fdf' } as any}
+                        placeholder="e.g., Main Park Entrance, Corner of Smith St & Brown Ave"
+                        required={index === 0}
+                      />
+                    </div>
+
+                    <div className="md:col-span-2 lg:col-span-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Run Type *
+                      </label>
+                      <select
+                        value={session.run_type}
+                        onChange={(e) => handleRunSessionChange(index, 'run_type', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
+                        style={{ '--tw-ring-color': '#021fdf' } as any}
+                        required={index === 0}
+                      >
+                        <option value="">Select Run Type</option>
+                        <option value="Easy Run">Easy Run</option>
+                        <option value="Tempo Run">Tempo Run</option>
+                        <option value="Speed Work">Speed Work</option>
+                        <option value="Long Run">Long Run</option>
+                        <option value="Hill Training">Hill Training</option>
+                        <option value="Track Session">Track Session</option>
+                        <option value="Interval Training">Interval Training</option>
+                        <option value="Recovery Run">Recovery Run</option>
+                        <option value="Social Run">Social Run</option>
+                        <option value="Mixed Training">Mixed Training</option>
+                      </select>
+                    </div>
+
+                    <div className="md:col-span-2 lg:col-span-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Additional Details
+                      </label>
+                      <textarea
+                        value={session.description || ''}
+                        onChange={(e) => handleRunSessionChange(index, 'description', e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
+                        style={{ '--tw-ring-color': '#021fdf' } as any}
+                        placeholder="Any additional details about this run session (pace, level, special notes)"
+                      />
+                    </div>
+                  </div>
                 </div>
               ))}
+              
+              {formData.runSessions.length < 7 && (
+                <button
+                  type="button"
+                  onClick={addRunSession}
+                  className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Plus className="h-5 w-5" />
+                  Add Another Run Session
+                </button>
+              )}
             </div>
           </div>
 

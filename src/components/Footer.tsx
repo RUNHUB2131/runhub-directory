@@ -1,8 +1,46 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    
+    setIsSubmitting(true);
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          source: 'footer',
+          startTime: Date.now() - 3000 // Bypass time check for footer
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setMessage('Thanks for subscribing!');
+        setEmail('');
+      } else {
+        setMessage(result.error || 'Failed to subscribe');
+      }
+    } catch (error) {
+      setMessage('Failed to subscribe. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <footer className="text-white py-12" style={{ backgroundColor: '#021fdf' }}>
       {/* RUNHUB Repeated Text with Sliding Animation - Full Width */}
@@ -30,16 +68,31 @@ export default function Footer() {
           {/* Newsletter */}
           <div className="md:col-span-2">
             <h3 className="text-xl font-bold mb-4 text-white">SIGN UP TO OUR NEWSLETTER</h3>
-            <div className="flex max-w-md">
-              <input
-                type="email"
-                placeholder="Enter your email address"
-                className="flex-1 px-4 py-3 rounded-l-full border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-white/70 focus:outline-none focus:border-white/40 focus:bg-white/20 transition-all"
-              />
-              <button className="px-6 py-3 bg-white text-blue-600 font-bold rounded-r-full hover:bg-gray-100 transition-colors">
-                SUBSCRIBE
-              </button>
-            </div>
+            <form onSubmit={handleSubmit} className="max-w-md">
+              <div className="flex">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  className="flex-1 px-4 py-3 rounded-l-full border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-white/70 focus:outline-none focus:border-white/40 focus:bg-white/20 transition-all"
+                  disabled={isSubmitting}
+                  required
+                />
+                <button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-6 py-3 bg-white text-blue-600 font-bold rounded-r-full hover:bg-gray-100 transition-colors disabled:opacity-50"
+                >
+                  {isSubmitting ? '...' : 'SUBSCRIBE'}
+                </button>
+              </div>
+              {message && (
+                <p className={`text-sm mt-2 ${message.includes('Thanks') ? 'text-green-300' : 'text-red-300'}`}>
+                  {message}
+                </p>
+              )}
+            </form>
             <p className="text-sm text-white/80 mt-2">
               By subscribing you agree to our <Link href="/privacy-policy" className="underline text-white hover:text-white/80 transition-colors">privacy policy</Link>
             </p>

@@ -16,6 +16,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Validate that at least one valid run session exists
+    const validRunSessions = formData.runSessions?.filter((session: any) => 
+      session.day && session.time && session.location && session.run_type
+    ) || [];
+    
+    if (validRunSessions.length === 0) {
+      return NextResponse.json({ error: 'At least one complete run session is required (day, time, location, and run type)' }, { status: 400 });
+    }
+
     // Upload club photo if exists (placeholder for now)
     let clubPhotoUrl = null;
     if (formData.clubPhoto) {
@@ -39,7 +48,8 @@ export async function POST(request: NextRequest) {
         state: formData.state,
         latitude: parseFloat(formData.latitude),
         longitude: parseFloat(formData.longitude),
-        run_details: formData.runDetails.filter((detail: string) => detail.trim() !== ''),
+        run_details: [], // Keep empty array for backward compatibility
+        run_sessions: validRunSessions,
         run_days: formData.runDays,
         club_type: formData.clubType,
         is_paid: formData.isPaid,
@@ -60,14 +70,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Send approval email to admin
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
     const approveUrl = `${baseUrl}/api/approve-club/${club.approval_token}?action=approve`;
     const rejectUrl = `${baseUrl}/api/approve-club/${club.approval_token}?action=reject`;
     
+    console.log('Attempting to send email...');
+    console.log('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
+    console.log('Base URL:', baseUrl);
+    console.log('Approval token:', club.approval_token);
+    
     try {
-      await resend.emails.send({
-        from: 'RunHub Directory <noreply@runhubdirectory.com.au>',
-        to: [process.env.RUNHUB_ADMIN_EMAIL!],
+      const emailResult = await resend.emails.send({
+        from: 'RunHub Directory <noreply@mail.runhub.co>',
+        to: ['hello@runhub.co'],
         subject: `New Club Submission: ${formData.clubName}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -93,10 +108,20 @@ export async function POST(request: NextRequest) {
               </div>
             </div>
 
-            ${formData.runDays.length > 0 ? `
+            ${validRunSessions.length > 0 ? `
               <div style="margin: 20px 0;">
-                <h3>Run Days:</h3>
-                                 <p>${formData.runDays.map((day: string) => day.charAt(0).toUpperCase() + day.slice(1)).join(', ')}</p>
+                <h3>Run Sessions:</h3>
+                ${validRunSessions.map((session: any, index: number) => `
+                  <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                    <h4 style="margin: 0 0 10px 0; color: #333;">Session ${index + 1}</h4>
+                    <p style="margin: 5px 0;"><strong>Day:</strong> ${session.day.charAt(0).toUpperCase() + session.day.slice(1)}</p>
+                    <p style="margin: 5px 0;"><strong>Time:</strong> ${session.time}</p>
+                    <p style="margin: 5px 0;"><strong>Location:</strong> ${session.location}</p>
+                    <p style="margin: 5px 0;"><strong>Run Type:</strong> ${session.run_type}</p>
+                    ${session.distance ? `<p style="margin: 5px 0;"><strong>Distance:</strong> ${session.distance}</p>` : ''}
+                    ${session.description ? `<p style="margin: 5px 0;"><strong>Details:</strong> ${session.description}</p>` : ''}
+                  </div>
+                `).join('')}
               </div>
             ` : ''}
 
@@ -117,8 +142,11 @@ export async function POST(request: NextRequest) {
           </div>
         `
       });
+      
+      console.log('Email sent successfully:', emailResult);
     } catch (emailError) {
       console.error('Email send error:', emailError);
+      console.error('Email error details:', JSON.stringify(emailError, null, 2));
       // Don't fail the submission if email fails
     }
 

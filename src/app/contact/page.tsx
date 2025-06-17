@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import Button from '@/components/Button';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -13,17 +14,55 @@ export default function ContactPage() {
     message: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [statusMessage, setStatusMessage] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Form submission logic will be added when connecting Resend
-    console.log('Form submitted:', formData);
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setStatusMessage(result.message);
+        // Reset form on success
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: ''
+        });
+      } else {
+        setSubmitStatus('error');
+        setStatusMessage(result.error || 'Failed to send message');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+      setStatusMessage('Failed to send message. Please try again.');
+      console.error('Contact form error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleButtonClick = () => {
-    // Trigger form submission
-    const form = document.getElementById('contact-form') as HTMLFormElement;
-    if (form) {
-      form.requestSubmit();
+    if (!isSubmitting) {
+      const form = document.getElementById('contact-form') as HTMLFormElement;
+      if (form) {
+        form.requestSubmit();
+      }
     }
   };
 
@@ -50,6 +89,21 @@ export default function ContactPage() {
             Complete the form below and our team will get back to you shortly.
           </p>
         </div>
+
+        {/* Status Messages */}
+        {submitStatus === 'success' && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+            <p className="text-green-800">{statusMessage}</p>
+          </div>
+        )}
+        
+        {submitStatus === 'error' && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600" />
+            <p className="text-red-800">{statusMessage}</p>
+          </div>
+        )}
 
         {/* Contact Form */}
         <form id="contact-form" onSubmit={handleSubmit} className="space-y-6">
@@ -127,8 +181,13 @@ export default function ContactPage() {
 
           {/* Submit Button */}
           <div className="pt-4">
-            <Button variant="secondary" size="lg" onClick={handleButtonClick}>
-              Submit
+            <Button 
+              variant="secondary" 
+              size="lg" 
+              onClick={handleButtonClick}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Sending...' : 'Submit'}
             </Button>
           </div>
         </form>
