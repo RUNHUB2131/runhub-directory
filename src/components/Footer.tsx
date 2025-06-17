@@ -41,7 +41,7 @@ export default function Footer() {
               </button>
             </div>
             <p className="text-sm text-white/80 mt-2">
-              By subscribing you agree to our <Link href="/privacy" className="underline text-white hover:text-white/80 transition-colors">privacy policy</Link>
+              By subscribing you agree to our <Link href="/privacy-policy" className="underline text-white hover:text-white/80 transition-colors">privacy policy</Link>
             </p>
           </div>
         </div>
@@ -50,7 +50,7 @@ export default function Footer() {
           <div className="text-2xl font-black">RUNHUB</div>
           <div className="text-blue-200">© 2025, RUNHUB</div>
           <div className="text-blue-200">
-            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
           </div>
         </div>
       </div>
