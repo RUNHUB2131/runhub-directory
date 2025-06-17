@@ -1,3 +1,13 @@
+// Run session structure for structured run data
+export interface RunSession {
+  day: string;           // e.g., "monday", "tuesday"
+  time: string;          // e.g., "06:00", "18:30"
+  location: string;      // e.g., "Main Street Park Entrance"
+  run_type: string;      // e.g., "Easy Run", "Speed Work", "Long Run"
+  distance: string;      // e.g., "5km", "10km", "5-8km"
+  description?: string;  // Additional details about the run
+}
+
 // Database types - matching the Supabase schema
 export interface DatabaseRunClub {
   id: string;
@@ -15,6 +25,8 @@ export interface DatabaseRunClub {
   longitude: number;
   run_details: string[];
   run_days: string[];
+  // New structured run sessions - each object contains complete run details
+  run_sessions: RunSession[];
   club_type: 'everyone' | 'women-only' | 'men-only';
   is_paid: 'free' | 'paid';
   extracurriculars: string[];
@@ -53,6 +65,10 @@ export interface RunClub {
   meeting_day: string; // primary day from run_days array
   meeting_time: string; // extracted from run_details or default
   time_of_day: 'morning' | 'afternoon' | 'evening'; // derived from meeting_time
+  run_days: string[]; // array of days club meets (from database)
+  
+  // Structured run sessions (new field)
+  run_sessions?: RunSession[]; // structured run data from database
   
   // Club characteristics
   difficulty: 'beginner' | 'intermediate' | 'advanced' | 'all-levels'; // derived or default

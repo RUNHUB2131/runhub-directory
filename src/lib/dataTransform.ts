@@ -1,4 +1,4 @@
-import { DatabaseRunClub, RunClub } from '@/types';
+import { DatabaseRunClub, RunClub, RunSession } from '@/types';
 
 /**
  * Transform database run club to frontend format
@@ -22,14 +22,18 @@ export function transformRunClub(dbClub: DatabaseRunClub): RunClub {
       lng: dbClub.longitude
     },
     
-    // Meeting info - extract from run_days and run_details
-    meeting_day: extractMeetingDay(dbClub.run_days),
-    meeting_time: extractMeetingTime(dbClub.run_details),
-    time_of_day: extractTimeOfDay(dbClub.run_details),
+    // Meeting info - extract from run_sessions (structured data)
+    meeting_day: extractMeetingDay(dbClub.run_sessions),
+    meeting_time: extractMeetingTime(dbClub.run_sessions),
+    time_of_day: extractTimeOfDay(dbClub.run_sessions),
+    run_days: dbClub.run_days || [],
+    
+    // Include run_sessions for component access
+    run_sessions: dbClub.run_sessions || [],
     
     // Club characteristics
-    difficulty: extractDifficulty(dbClub.run_details, dbClub.short_bio),
-    distance_focus: extractDistanceFocus(dbClub.run_details),
+    difficulty: extractDifficulty(dbClub.run_sessions, dbClub.short_bio),
+    distance_focus: extractDistanceFocus(dbClub.run_sessions),
     club_type: dbClub.club_type,
     is_paid: dbClub.is_paid,
     
@@ -54,15 +58,20 @@ export function transformRunClub(dbClub: DatabaseRunClub): RunClub {
 }
 
 /**
- * Extract primary meeting day from run_days array
+ * Extract primary meeting day from run_sessions array
  */
-function extractMeetingDay(runDays: string[]): string {
-  if (!runDays || runDays.length === 0) {
+function extractMeetingDay(runSessions: RunSession[]): string {
+  if (!runSessions || runSessions.length === 0) {
     return 'Contact club';
   }
   
-  // Convert first day to proper format
-  const firstDay = runDays[0].toLowerCase();
+  // Get the first session's day
+  const firstSession = runSessions[0];
+  if (!firstSession || !firstSession.day) {
+    return 'Contact club';
+  }
+  
+  const day = firstSession.day.toLowerCase();
   const dayMap: { [key: string]: string } = {
     'monday': 'Monday',
     'tuesday': 'Tuesday', 
@@ -70,85 +79,87 @@ function extractMeetingDay(runDays: string[]): string {
     'thursday': 'Thursday',
     'friday': 'Friday',
     'saturday': 'Saturday',
-    'sunday': 'Sunday',
-    'mon': 'Monday',
-    'tue': 'Tuesday',
-    'wed': 'Wednesday',
-    'thu': 'Thursday',
-    'fri': 'Friday',
-    'sat': 'Saturday',
-    'sun': 'Sunday'
+    'sunday': 'Sunday'
   };
   
-  return dayMap[firstDay] || 'Contact club';
+  return dayMap[day] || 'Contact club';
 }
 
 /**
- * Extract meeting time from run_details array
+ * Extract meeting time from run_sessions array
  */
-function extractMeetingTime(runDetails: string[]): string {
-  if (!runDetails || runDetails.length === 0) {
+function extractMeetingTime(runSessions: RunSession[]): string {
+  if (!runSessions || runSessions.length === 0) {
     return 'Contact club';
   }
   
-  // Look for time patterns in run details
-  const timePattern = /(\d{1,2}:\d{2}\s?(AM|PM|am|pm)|\d{1,2}(AM|PM|am|pm))/;
-  
-  for (const detail of runDetails) {
-    const match = detail.match(timePattern);
-    if (match) {
-      return match[0].toUpperCase();
-    }
+  // Get the first session's time
+  const firstSession = runSessions[0];
+  if (!firstSession || !firstSession.time || firstSession.time === 'unknown') {
+    return 'Contact club';
   }
   
-  return 'Contact club';
+  return firstSession.time;
 }
 
 /**
- * Extract time of day from run_details
+ * Extract time of day from run_sessions
  */
-function extractTimeOfDay(runDetails: string[]): 'morning' | 'afternoon' | 'evening' {
-  if (!runDetails || runDetails.length === 0) {
+function extractTimeOfDay(runSessions: RunSession[]): 'morning' | 'afternoon' | 'evening' {
+  if (!runSessions || runSessions.length === 0) {
     return 'morning'; // Default
   }
   
-  const detailsText = runDetails.join(' ').toLowerCase();
-  
-  // Check for explicit time indicators
-  if (detailsText.includes('evening') || detailsText.includes('night') || 
-      detailsText.includes('6:00 pm') || detailsText.includes('7:00 pm') ||
-      detailsText.includes('18:') || detailsText.includes('19:')) {
-    return 'evening';
+  const firstSession = runSessions[0];
+  if (!firstSession || !firstSession.time || firstSession.time === 'unknown') {
+    return 'morning';
   }
   
-  if (detailsText.includes('afternoon') || detailsText.includes('lunch') ||
-      detailsText.includes('12:') || detailsText.includes('1:00 pm') ||
-      detailsText.includes('2:00 pm') || detailsText.includes('3:00 pm')) {
-    return 'afternoon';
+  const time = firstSession.time.toLowerCase();
+  
+  // Check for PM times
+  if (time.includes('pm')) {
+    const hour = parseInt(time.split(':')[0]);
+    if (hour >= 6) {
+      return 'evening';
+    } else if (hour >= 12) {
+      return 'afternoon';
+    }
   }
   
-  // Default to morning for early times or no specific indicator
+  // Check for AM times
+  if (time.includes('am')) {
+    const hour = parseInt(time.split(':')[0]);
+    if (hour >= 12 || hour <= 6) {
+      return 'morning';
+    }
+  }
+  
+  // Default to morning
   return 'morning';
 }
 
 /**
- * Extract difficulty level from description and run details
+ * Extract difficulty level from run sessions and club description
  */
-function extractDifficulty(runDetails: string[], shortBio: string): 'beginner' | 'intermediate' | 'advanced' | 'all-levels' {
-  const text = (runDetails.join(' ') + ' ' + shortBio).toLowerCase();
+function extractDifficulty(runSessions: RunSession[], shortBio: string): 'beginner' | 'intermediate' | 'advanced' | 'all-levels' {
+  const sessionTexts = runSessions.map(s => `${s.run_type || ''} ${s.description || ''}`).join(' ');
+  const text = (sessionTexts + ' ' + shortBio).toLowerCase();
   
   if (text.includes('beginner') || text.includes('all welcome') || 
       text.includes('any pace') || text.includes('all levels') ||
-      text.includes('any speed')) {
+      text.includes('any speed') || text.includes('social')) {
     return 'all-levels';
   }
   
   if (text.includes('advanced') || text.includes('competitive') || 
-      text.includes('fast') || text.includes('elite')) {
+      text.includes('fast') || text.includes('elite') ||
+      text.includes('speed') || text.includes('interval')) {
     return 'advanced';
   }
   
-  if (text.includes('intermediate') || text.includes('moderate')) {
+  if (text.includes('intermediate') || text.includes('moderate') ||
+      text.includes('threshold') || text.includes('tempo')) {
     return 'intermediate';
   }
   
@@ -157,38 +168,43 @@ function extractDifficulty(runDetails: string[], shortBio: string): 'beginner' |
 }
 
 /**
- * Extract distance focus from run details
+ * Extract distance focus from run sessions
  */
-function extractDistanceFocus(runDetails: string[]): string[] {
-  if (!runDetails || runDetails.length === 0) {
+function extractDistanceFocus(runSessions: RunSession[]): string[] {
+  if (!runSessions || runSessions.length === 0) {
     return ['Various'];
   }
   
-  const text = runDetails.join(' ').toLowerCase();
   const distances: string[] = [];
+  const allText = runSessions.map(s => `${s.distance || ''} ${s.run_type || ''} ${s.description || ''}`).join(' ').toLowerCase();
   
-  if (text.includes('5km') || text.includes('5k') || text.includes('parkrun')) {
+  if (allText.includes('5km') || allText.includes('5k') || allText.includes('parkrun')) {
     distances.push('5K');
   }
   
-  if (text.includes('10km') || text.includes('10k')) {
+  if (allText.includes('10km') || allText.includes('10k')) {
     distances.push('10K');
   }
   
-  if (text.includes('half marathon') || text.includes('21km')) {
+  if (allText.includes('half marathon') || allText.includes('21km')) {
     distances.push('Half Marathon');
   }
   
-  if (text.includes('marathon') && !text.includes('half')) {
+  if (allText.includes('marathon') && !allText.includes('half')) {
     distances.push('Marathon');
   }
   
-  if (text.includes('ultra') || text.includes('50km') || text.includes('100km')) {
+  if (allText.includes('ultra') || allText.includes('50km') || allText.includes('100km')) {
     distances.push('Ultra');
   }
   
-  if (text.includes('track') || text.includes('400m') || text.includes('800m')) {
+  if (allText.includes('track') || allText.includes('400m') || allText.includes('800m')) {
     distances.push('Track');
+  }
+  
+  // Look for specific distance ranges
+  if (allText.includes('long run') || allText.includes('10-') || allText.includes('15-') || allText.includes('20-')) {
+    distances.push('Long Distance');
   }
   
   return distances.length > 0 ? distances : ['Various'];
@@ -198,44 +214,55 @@ function extractDistanceFocus(runDetails: string[]): string[] {
  * Clean and validate URLs
  */
 function cleanUrl(url?: string): string | undefined {
-  if (!url || url === 'Unknown' || url.trim() === '') {
+  if (!url || url.trim() === '') {
     return undefined;
   }
   
-  // Add https:// if missing
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return `https://${url}`;
+  let cleaned = url.trim();
+  
+  // Add protocol if missing
+  if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {
+    cleaned = 'https://' + cleaned;
   }
   
-  return url;
+  try {
+    new URL(cleaned);
+    return cleaned;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
- * Clean Instagram URLs to just handle format
+ * Clean Instagram URLs to standard format
  */
 function cleanInstagramUrl(url?: string): string | undefined {
-  if (!url || url === 'Unknown' || url.trim() === '') {
+  if (!url || url.trim() === '') {
     return undefined;
   }
   
+  let cleaned = url.trim();
+  
   // Extract Instagram handle if it's a full URL
-  if (url.includes('instagram.com/')) {
-    const match = url.match(/instagram\.com\/([^\/\?]+)/);
-    if (match) {
-      return `@${match[1]}`;
-    }
+  const instagramMatch = cleaned.match(/instagram\.com\/([^\/\?]+)/);
+  if (instagramMatch) {
+    cleaned = `https://instagram.com/${instagramMatch[1]}`;
+  } else if (!cleaned.startsWith('http')) {
+    // If it's just a handle, construct the full URL
+    cleaned = cleaned.replace('@', '');
+    cleaned = `https://instagram.com/${cleaned}`;
   }
   
-  // If it's already a handle, ensure it starts with @
-  if (url.startsWith('@')) {
-    return url;
+  try {
+    new URL(cleaned);
+    return cleaned;
+  } catch {
+    return undefined;
   }
-  
-  return `@${url}`;
 }
 
 /**
- * Transform multiple database clubs to frontend format
+ * Transform array of database run clubs to frontend format
  */
 export function transformRunClubs(dbClubs: DatabaseRunClub[]): RunClub[] {
   return dbClubs.map(transformRunClub);

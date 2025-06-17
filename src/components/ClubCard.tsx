@@ -26,9 +26,35 @@ function ClubImage({ src, alt, className }: { src: string; alt: string; classNam
 }
 
 export default function ClubCard({ club, variant = 'dark' }: ClubCardProps) {
-  // Helper function to get meeting day from schedule
-  const getMeetingDay = () => {
+  // Helper function to get all meeting days from run_days
+  const getMeetingDays = (): string[] => {
+    // Use run_days array directly (preferred method)
+    if (club.run_days && club.run_days.length > 0) {
+      return club.run_days.map(day => day.toLowerCase());
+    }
+    
+    // Fallback: try to extract from meeting_day (legacy)
     const schedule = club.meeting_day.toLowerCase();
+    const dayMap: { [key: string]: string } = {
+      'monday': 'monday',
+      'tuesday': 'tuesday', 
+      'wednesday': 'wednesday',
+      'thursday': 'thursday',
+      'friday': 'friday',
+      'saturday': 'saturday',
+      'sunday': 'sunday'
+    };
+    
+    for (const [day, value] of Object.entries(dayMap)) {
+      if (schedule.includes(day)) {
+        return [value];
+      }
+    }
+    return []; // No days found
+  };
+
+  // Helper function to convert day name to abbreviation
+  const getDayAbbreviation = (day: string): string => {
     const dayMap: { [key: string]: string } = {
       'monday': 'Mo',
       'tuesday': 'Tu', 
@@ -38,13 +64,7 @@ export default function ClubCard({ club, variant = 'dark' }: ClubCardProps) {
       'saturday': 'Sa',
       'sunday': 'Su'
     };
-    
-    for (const [day, abbr] of Object.entries(dayMap)) {
-      if (schedule.includes(day)) {
-        return abbr;
-      }
-    }
-    return 'Mo'; // Default
+    return dayMap[day.toLowerCase()] || '';
   };
 
   // Use actual terrain data from database
@@ -68,9 +88,13 @@ export default function ClubCard({ club, variant = 'dark' }: ClubCardProps) {
     return tags.length > 0 ? tags.slice(0, 2) : ['URBAN']; // Default to Urban, limit to 2
   };
 
-  const meetingDay = getMeetingDay();
+  const meetingDays = getMeetingDays();
   const terrainTags = getTerrainTags();
   const daysOfWeek = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  
+  // Create a set of active day abbreviations for easy lookup
+  const activeDayAbbrs = new Set(meetingDays.map(day => getDayAbbreviation(day)));
 
   // Use club photo if available, otherwise fallback to placeholder
   const clubImage = club.club_photo || `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=250&fit=crop&crop=center`;
@@ -112,11 +136,11 @@ export default function ClubCard({ club, variant = 'dark' }: ClubCardProps) {
                 <div
                   key={day}
                   className={`w-8 h-8 rounded-md flex items-center justify-center text-xs font-bold transition-colors ${
-                    day === meetingDay 
+                    activeDayAbbrs.has(day)
                       ? 'text-white' 
                       : 'text-gray-400'
                   }`}
-                  style={day === meetingDay ? { backgroundColor: '#021fdf' } : { backgroundColor: '#f0f0f0' }}
+                  style={activeDayAbbrs.has(day) ? { backgroundColor: '#021fdf' } : { backgroundColor: '#f0f0f0' }}
                 >
                   {day}
                 </div>
