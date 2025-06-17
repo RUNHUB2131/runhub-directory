@@ -100,7 +100,11 @@ export default function Footer() {
         </div>
         
         <div className="flex justify-between items-center mt-8 pt-8 border-t border-blue-800">
-          <div className="text-2xl font-black">RUNHUB</div>
+          <img 
+            src="/RUNHUB logos (1).png" 
+            alt="RUNHUB" 
+            className="h-8 w-auto"
+          />
           <div className="text-blue-200">© 2025, RUNHUB</div>
           <div className="text-blue-200">
             <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>

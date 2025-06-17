@@ -14,9 +14,11 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <span className="text-2xl font-black text-white">
-              RUNHUB
-            </span>
+            <img 
+              src="/RUNHUB logos (1).png" 
+              alt="RUNHUB" 
+              className="h-8 w-auto"
+            />
           </Link>
 
           {/* Add Your Club Button + Burger Menu */}
