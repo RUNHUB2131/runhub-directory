@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { RunClub } from '@/types';
-import { MapPin, Clock, Users } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 interface SearchClubCardProps {
   club: RunClub;
   isHighlighted?: boolean;
+  onClick?: () => void;
 }
 
 // Separate client component for image with error handling
@@ -25,26 +26,46 @@ function SearchClubImage({ src, alt, className }: { src: string; alt: string; cl
   );
 }
 
-export default function SearchClubCard({ club, isHighlighted = false }: SearchClubCardProps) {
-  // Helper function to get meeting day from schedule
-  const getMeetingDay = () => {
+export default function SearchClubCard({ club, isHighlighted = false, onClick }: SearchClubCardProps) {
+  // Helper function to get all meeting days from run_days
+  const getMeetingDays = (): string[] => {
+    // Use run_days array directly (preferred method)
+    if (club.run_days && club.run_days.length > 0) {
+      return club.run_days.map(day => day.toLowerCase());
+    }
+    
+    // Fallback: try to extract from meeting_day (legacy)
     const schedule = club.meeting_day.toLowerCase();
     const dayMap: { [key: string]: string } = {
-      'monday': 'Mon',
-      'tuesday': 'Tue', 
-      'wednesday': 'Wed',
-      'thursday': 'Thu',
-      'friday': 'Fri',
-      'saturday': 'Sat',
-      'sunday': 'Sun'
+      'monday': 'monday',
+      'tuesday': 'tuesday', 
+      'wednesday': 'wednesday',
+      'thursday': 'thursday',
+      'friday': 'friday',
+      'saturday': 'saturday',
+      'sunday': 'sunday'
     };
     
-    for (const [day, abbr] of Object.entries(dayMap)) {
+    for (const [day, value] of Object.entries(dayMap)) {
       if (schedule.includes(day)) {
-        return abbr;
+        return [value];
       }
     }
-    return 'Mon'; // Default
+    return []; // No days found
+  };
+
+  // Helper function to convert day name to abbreviation
+  const getDayAbbreviation = (day: string): string => {
+    const dayMap: { [key: string]: string } = {
+      'monday': 'Mo',
+      'tuesday': 'Tu', 
+      'wednesday': 'We',
+      'thursday': 'Th',
+      'friday': 'Fr',
+      'saturday': 'Sa',
+      'sunday': 'Su'
+    };
+    return dayMap[day.toLowerCase()] || '';
   };
 
   // Use actual terrain data from database
@@ -68,21 +89,34 @@ export default function SearchClubCard({ club, isHighlighted = false }: SearchCl
     return tags.length > 0 ? tags.slice(0, 1) : ['URBAN']; // Limit to 1 tag for condensed view
   };
 
-  const meetingDay = getMeetingDay();
+  const meetingDays = getMeetingDays();
   const terrainTags = getTerrainTags();
+  const daysOfWeek = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  
+  // Create a set of active day abbreviations for easy lookup
+  const activeDayAbbrs = new Set(meetingDays.map(day => getDayAbbreviation(day)));
 
   // Use club photo if available, otherwise fallback to placeholder
   const clubImage = club.club_photo || `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=160&fit=crop&crop=center`;
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      onClick();
+    }
+    // Allow Link navigation to proceed
+  };
+
   return (
-    <Link href={`/clubs/${club.id}`} className="block">
-      <div className={`rounded-xl border hover:shadow-lg transition-all duration-200 ${
-        isHighlighted 
-          ? 'border-blue-500 shadow-md bg-blue-50' 
-          : 'border-gray-200 bg-white hover:border-gray-300'
-      }`}>
-        <div className="p-3">
-          {/* Club Photo - Smaller and more compact */}
+    <Link href={`/clubs/${club.id}`} className="block" onClick={handleClick}>
+      <div 
+        className={`rounded-xl border-2 p-2 hover:scale-105 transition-transform duration-200 ${
+          isHighlighted 
+            ? 'border-blue-500 shadow-md' 
+            : 'border-gray-200 hover:border-blue-300'
+        }`}
+      >
+        <div className="bg-white rounded-lg p-3">
+          {/* Club Photo - Compact */}
           <div className="mb-3">
             <SearchClubImage
               src={clubImage}
@@ -91,30 +125,38 @@ export default function SearchClubCard({ club, isHighlighted = false }: SearchCl
             />
           </div>
 
-          {/* Club Name - More compact */}
-          <h3 className="text-sm font-bold mb-2 line-clamp-1" style={{ color: '#021fdf' }}>
+          {/* Club Name - Compact */}
+          <h3 className="text-sm font-black mb-2 uppercase line-clamp-1" style={{ color: '#021fdf' }}>
             {club.name}
           </h3>
 
-          {/* Location - Inline with icon */}
-          <div className="flex items-center mb-2" style={{ color: '#021fdf' }}>
+          {/* Location - Compact */}
+          <div className="flex items-center mb-3" style={{ color: '#021fdf' }}>
             <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-            <span className="text-xs font-medium truncate">{club.suburb}, {club.state}</span>
+            <span className="text-xs font-semibold truncate">{club.suburb}, {club.state}</span>
           </div>
 
-          {/* Meeting Info - Compact horizontal layout */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center" style={{ color: '#021fdf' }}>
-              <Clock className="h-3 w-3 mr-1" />
-              <span className="text-xs font-medium">{meetingDay}</span>
-            </div>
-            <div className="flex items-center" style={{ color: '#021fdf' }}>
-              <span className="text-xs">{club.meeting_time}</span>
+          {/* Days of Week - Compact version */}
+          <div className="mb-3">
+            <div className="flex justify-center space-x-1">
+              {daysOfWeek.map(day => (
+                <div
+                  key={day}
+                  className={`w-5 h-5 rounded-sm flex items-center justify-center text-xs font-bold ${
+                    activeDayAbbrs.has(day)
+                      ? 'text-white' 
+                      : 'text-gray-400'
+                  }`}
+                  style={activeDayAbbrs.has(day) ? { backgroundColor: '#021fdf' } : { backgroundColor: '#f0f0f0' }}
+                >
+                  {day.charAt(0)} {/* Just first letter for very compact view */}
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Description - Very condensed */}
-          <p className="text-xs leading-relaxed mb-2 text-gray-600 line-clamp-2">
+          <p className="text-xs leading-relaxed mb-3 text-gray-600 line-clamp-2" style={{ color: '#021fdf' }}>
             {club.description.length > 60 
               ? `${club.description.substring(0, 60)}...`
               : club.description

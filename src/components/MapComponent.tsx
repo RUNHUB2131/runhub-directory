@@ -8,12 +8,14 @@ import { RunClub } from '@/types';
 interface MapComponentProps {
   clubs: RunClub[];
   onClubClick?: (club: RunClub) => void;
+  onBoundsChange?: (bounds: { north: number; south: number; east: number; west: number } | null) => void;
   height?: string;
 }
 
 export default function MapComponent({ 
   clubs, 
   onClubClick, 
+  onBoundsChange,
   height = '400px' 
 }: MapComponentProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -22,6 +24,7 @@ export default function MapComponent({
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [selectedClub, setSelectedClub] = useState<RunClub | null>(null);
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
+  const hasInitiallyFitBounds = useRef(false);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -36,16 +39,71 @@ export default function MapComponent({
 
     mapboxgl.accessToken = mapboxToken;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [133.7751, -25.2744], // Center of Australia
-      zoom: 4
-    });
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [133.7751, -25.2744], // Center of Australia
+        zoom: 4,
+        attributionControl: true,
+        preserveDrawingBuffer: true,
+        antialias: true
+      });
 
-    map.current.on('load', () => {
-      setIsLoaded(true);
-    });
+      map.current.on('load', () => {
+        setIsLoaded(true);
+        
+        // Trigger resize to ensure map fits container properly
+        setTimeout(() => {
+          if (map.current) {
+            map.current.resize();
+          }
+        }, 100);
+      });
+
+      // Track map bounds changes
+      const updateBounds = () => {
+        if (map.current && onBoundsChange) {
+          const bounds = map.current.getBounds();
+          if (bounds) {
+            onBoundsChange({
+              north: bounds.getNorth(),
+              south: bounds.getSouth(),
+              east: bounds.getEast(),
+              west: bounds.getWest()
+            });
+          }
+        }
+      };
+
+      // Listen for map movement events
+      map.current.on('moveend', updateBounds);
+      map.current.on('zoomend', updateBounds);
+
+      map.current.on('error', (e) => {
+        console.error('MapComponent: Map error:', e);
+      });
+
+      // Add resize handler to ensure map fits properly
+      map.current.on('resize', () => {
+        // Map resized
+      });
+
+      map.current.on('styledata', () => {
+        // Style data loaded
+      });
+
+      map.current.on('sourcedata', (e) => {
+        // Source data loaded
+      });
+
+      map.current.on('idle', () => {
+        // Map is idle (fully loaded)
+      });
+
+    } catch (error) {
+      console.error('MapComponent: Error creating map:', error);
+    }
 
     return () => {
       if (map.current) {
@@ -54,8 +112,63 @@ export default function MapComponent({
     };
   }, []);
 
+  // Track if we're currently interacting with the map
+  const isInteracting = useRef(false);
+  const interactionTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Add interaction tracking
   useEffect(() => {
     if (!map.current || !isLoaded) return;
+
+    const handleInteractionStart = () => {
+      isInteracting.current = true;
+      if (interactionTimeout.current) {
+        clearTimeout(interactionTimeout.current);
+      }
+    };
+
+    const handleInteractionEnd = () => {
+      // Wait a bit after interaction ends before allowing marker updates
+      if (interactionTimeout.current) {
+        clearTimeout(interactionTimeout.current);
+      }
+      interactionTimeout.current = setTimeout(() => {
+        isInteracting.current = false;
+        // Force a re-render to update markers after interaction ends
+        setIsLoaded(prev => prev);
+      }, 100);
+    };
+
+    // Add event listeners for various interaction types
+    map.current.on('dragstart', handleInteractionStart);
+    map.current.on('dragend', handleInteractionEnd);
+    map.current.on('zoomstart', handleInteractionStart);
+    map.current.on('zoomend', handleInteractionEnd);
+    map.current.on('rotatestart', handleInteractionStart);
+    map.current.on('rotateend', handleInteractionEnd);
+
+    return () => {
+      if (map.current) {
+        map.current.off('dragstart', handleInteractionStart);
+        map.current.off('dragend', handleInteractionEnd);
+        map.current.off('zoomstart', handleInteractionStart);
+        map.current.off('zoomend', handleInteractionEnd);
+        map.current.off('rotatestart', handleInteractionStart);
+        map.current.off('rotateend', handleInteractionEnd);
+      }
+      if (interactionTimeout.current) {
+        clearTimeout(interactionTimeout.current);
+      }
+    };
+  }, [isLoaded]);
+
+  useEffect(() => {
+    if (!map.current || !isLoaded) return;
+
+    // Don't update markers during active interaction
+    if (isInteracting.current) {
+      return;
+    }
 
     // Clear existing markers properly
     markersRef.current.forEach(marker => marker.remove());
@@ -126,9 +239,12 @@ export default function MapComponent({
       markersRef.current.push(marker);
     });
 
-    // Fit map to show all clubs
-    if (clubs.length > 0) {
+    // Only fit bounds on initial load, not during filtering
+    if (clubs.length > 0 && !hasInitiallyFitBounds.current) {
+      hasInitiallyFitBounds.current = true;
       const bounds = new mapboxgl.LngLatBounds();
+      let validClubsCount = 0;
+      
       clubs.forEach(club => {
         if (club.coordinates && 
             typeof club.coordinates.lat === 'number' && 
@@ -136,14 +252,47 @@ export default function MapComponent({
             !isNaN(club.coordinates.lat) && 
             !isNaN(club.coordinates.lng)) {
           bounds.extend([club.coordinates.lng, club.coordinates.lat]);
+          validClubsCount++;
         }
       });
       
-      if (!bounds.isEmpty()) {
-        map.current.fitBounds(bounds, { 
-          padding: 50,
-          maxZoom: 14
-        });
+      if (!bounds.isEmpty() && validClubsCount > 0) {
+        // Add a small delay to ensure map container is properly sized
+        setTimeout(() => {
+          try {
+            if (map.current) {
+              map.current.fitBounds(bounds, { 
+                padding: 50,
+                maxZoom: 14,
+                duration: 1000
+              });
+              
+              // Update bounds after fitting
+              setTimeout(() => {
+                if (map.current && onBoundsChange) {
+                  const currentBounds = map.current.getBounds();
+                  if (currentBounds) {
+                    onBoundsChange({
+                      north: currentBounds.getNorth(),
+                      south: currentBounds.getSouth(),
+                      east: currentBounds.getEast(),
+                      west: currentBounds.getWest()
+                    });
+                  }
+                }
+              }, 1100);
+            }
+          } catch (boundsError) {
+            console.warn('MapComponent: Error fitting bounds, using fallback center:', boundsError);
+            // Fallback to center of Australia if bounds fitting fails
+            if (map.current) {
+              map.current.setCenter([133.7751, -25.2744]);
+              map.current.setZoom(5);
+            }
+          }
+        }, 500);
+      } else {
+        console.warn('MapComponent: No valid bounds to fit');
       }
     }
   }, [clubs, isLoaded, onClubClick]);
@@ -177,13 +326,16 @@ export default function MapComponent({
   }
 
   return (
-    <div className="relative">
+    <div style={{ height, width: '100%', position: 'relative' }}>
       <div
         ref={mapContainer}
-        className="rounded-lg border border-gray-300"
-        style={{ height }}
+        style={{ 
+          width: '100%',
+          height: '100%',
+          minHeight: height === '100%' ? '400px' : undefined
+        }}
       />
-      <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md p-2">
+      <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md p-2 z-[1000]">
         <div className="text-xs text-gray-600">
           {clubs.length} club{clubs.length !== 1 ? 's' : ''} shown
         </div>
@@ -201,10 +353,10 @@ export default function MapComponent({
           
           {/* Compact popup positioned near marker */}
           <div 
-            className="absolute bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-40 w-64"
+            className="absolute bg-white rounded-xl shadow-lg border-2 border-gray-200 p-3 z-40 w-72"
             style={{
               left: popupPosition.x + 25,
-              top: popupPosition.y - 50,
+              top: popupPosition.y - 80,
               transform: popupPosition.x > 200 ? 'translateX(-100%)' : 'none'
             }}
           >
@@ -220,56 +372,125 @@ export default function MapComponent({
             {/* Close button */}
             <button
               onClick={() => setPopupPosition(null)}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors z-10"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
+            {/* Club Image */}
+            <div className="mb-3">
+              <img
+                src={selectedClub.club_photo || `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=120&fit=crop&crop=center`}
+                alt={`${selectedClub.name} group photo`}
+                className="w-full h-16 object-cover rounded-lg"
+                onError={(e) => {
+                  e.currentTarget.src = `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=120&fit=crop&crop=center`;
+                }}
+              />
+            </div>
+
             {/* Club name */}
-            <h3 className="font-bold text-sm text-gray-900 mb-2 pr-6">{selectedClub.name}</h3>
+            <h3 className="font-black text-sm uppercase mb-2 pr-6" style={{ color: '#021fdf' }}>
+              {selectedClub.name}
+            </h3>
             
-            {/* Meeting info */}
-            <div className="text-xs text-gray-600 mb-2">
-              <div className="flex items-center mb-1">
-                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span>{selectedClub.meeting_day}s at {selectedClub.meeting_time}</span>
-              </div>
-              <div className="flex items-center mb-2">
-                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>{selectedClub.suburb}, {selectedClub.state}</span>
+            {/* Location */}
+            <div className="flex items-center mb-3" style={{ color: '#021fdf' }}>
+              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="text-xs font-semibold">{selectedClub.suburb}, {selectedClub.state}</span>
+            </div>
+
+            {/* Days of Week - Same as SearchClubCard */}
+            <div className="mb-3">
+              <div className="flex justify-center space-x-1">
+                {(() => {
+                  // Helper functions (same as SearchClubCard)
+                  const getMeetingDays = (): string[] => {
+                    if (selectedClub.run_days && selectedClub.run_days.length > 0) {
+                      return selectedClub.run_days.map(day => day.toLowerCase());
+                    }
+                    
+                    const schedule = selectedClub.meeting_day.toLowerCase();
+                    const dayMap: { [key: string]: string } = {
+                      'monday': 'monday', 'tuesday': 'tuesday', 'wednesday': 'wednesday',
+                      'thursday': 'thursday', 'friday': 'friday', 'saturday': 'saturday', 'sunday': 'sunday'
+                    };
+                    
+                    for (const [day, value] of Object.entries(dayMap)) {
+                      if (schedule.includes(day)) {
+                        return [value];
+                      }
+                    }
+                    return [];
+                  };
+
+                  const getDayAbbreviation = (day: string): string => {
+                    const dayMap: { [key: string]: string } = {
+                      'monday': 'Mo', 'tuesday': 'Tu', 'wednesday': 'We',
+                      'thursday': 'Th', 'friday': 'Fr', 'saturday': 'Sa', 'sunday': 'Su'
+                    };
+                    return dayMap[day.toLowerCase()] || '';
+                  };
+
+                  const meetingDays = getMeetingDays();
+                  const daysOfWeek = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+                  const activeDayAbbrs = new Set(meetingDays.map(day => getDayAbbreviation(day)));
+
+                  return daysOfWeek.map(day => (
+                    <div
+                      key={day}
+                      className={`w-5 h-5 rounded-sm flex items-center justify-center text-xs font-bold ${
+                        activeDayAbbrs.has(day) ? 'text-white' : 'text-gray-400'
+                      }`}
+                      style={activeDayAbbrs.has(day) ? { backgroundColor: '#021fdf' } : { backgroundColor: '#f0f0f0' }}
+                    >
+                      {day.charAt(0)}
+                    </div>
+                  ));
+                })()}
               </div>
             </div>
 
-            {/* Tags */}
+            {/* Description */}
+            <p className="text-xs leading-relaxed mb-3" style={{ color: '#021fdf' }}>
+              {selectedClub.description.length > 80 
+                ? `${selectedClub.description.substring(0, 80)}...`
+                : selectedClub.description
+              }
+            </p>
+
+            {/* Terrain Tags */}
             <div className="flex flex-wrap gap-1 mb-3">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                selectedClub.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
-                selectedClub.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-red-100 text-red-800'
-              }`}>
-                {selectedClub.difficulty}
-              </span>
-              {selectedClub.distance_focus.slice(0, 2).map((distance) => (
-                <span
-                  key={distance}
-                  className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
-                >
-                  {distance}
-                </span>
-              ))}
+              {(() => {
+                const getTerrainTags = () => {
+                  if (selectedClub.terrain && selectedClub.terrain.length > 0) {
+                    return selectedClub.terrain.slice(0, 2).map(terrain => terrain.toUpperCase());
+                  }
+                  return ['URBAN'];
+                };
+                
+                return getTerrainTags().map(tag => (
+                  <span
+                    key={tag}
+                    className="px-2 py-1 text-white font-bold text-xs rounded-full"
+                    style={{ backgroundColor: '#021fdf' }}
+                  >
+                    {tag}
+                  </span>
+                ));
+              })()}
             </div>
 
             {/* Action button */}
             <a
               href={`/clubs/${selectedClub.id}`}
-              className="block w-full text-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium"
+              className="block w-full text-center px-3 py-2 text-white rounded-lg hover:opacity-90 transition-colors text-xs font-bold uppercase"
+              style={{ backgroundColor: '#021fdf' }}
             >
               View Details
             </a>

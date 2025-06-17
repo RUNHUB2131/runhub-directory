@@ -1,26 +1,43 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import Navigation from '@/components/Navigation';
+import SearchNavigation from '@/components/SearchNavigation';
 import SearchClubCard from '@/components/SearchClubCard';
 import MapComponent from '@/components/MapComponent';
 import Button from '@/components/Button';
 import Footer from '@/components/Footer';
 import { getAllClubs } from '@/lib/supabase';
 import { RunClub } from '@/types';
-import { MapPin, Search } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+
+interface FilterState {
+  states: string[];
+  meetingDays: string[];
+  clubType: string[];
+  terrain: string[];
+  extracurriculars: string[];
+  isPaid: string[];
+}
+
+const DEFAULT_FILTERS: FilterState = {
+  states: [],
+  meetingDays: [],
+  clubType: [],
+  terrain: [],
+  extracurriculars: [],
+  isPaid: []
+};
 
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [stateFilter, setStateFilter] = useState('all');
-  const [difficultyFilter, setDifficultyFilter] = useState('all');
-  const [timeFilter, setTimeFilter] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
   const [clubs, setClubs] = useState<RunClub[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
+
   const itemsPerPage = 15;
 
   // Load clubs on component mount
@@ -42,28 +59,59 @@ export default function SearchPage() {
     loadClubs();
   }, []);
 
-  // Get unique states from clubs
-  const states = useMemo(() => {
-    const uniqueStates = [...new Set(clubs.map(club => club.state))];
-    return uniqueStates.sort();
-  }, [clubs]);
+  // Helper function to check if a club is within the visible map bounds
+  const isClubInBounds = (club: RunClub): boolean => {
+    if (!mapBounds || !club.coordinates) return true; // Show all clubs if no bounds or coordinates
+    
+    const { lat, lng } = club.coordinates;
+    return (
+      lat <= mapBounds.north &&
+      lat >= mapBounds.south &&
+      lng <= mapBounds.east &&
+      lng >= mapBounds.west
+    );
+  };
 
   // Filter clubs based on search and filters
   const filteredClubs = useMemo(() => {
     return clubs.filter(club => {
+      // Search filter
       const matchesSearch = searchQuery === '' || 
         club.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         club.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         club.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
         club.suburb.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesState = stateFilter === 'all' || club.state === stateFilter;
-      const matchesDifficulty = difficultyFilter === 'all' || club.difficulty === difficultyFilter;
-      const matchesTime = timeFilter === 'all' || club.time_of_day === timeFilter;
+      // State filter
+      const matchesState = filters.states.length === 0 || filters.states.includes(club.state);
 
-      return matchesSearch && matchesState && matchesDifficulty && matchesTime;
+      // Meeting day filter
+      const matchesMeetingDay = filters.meetingDays.length === 0 || 
+        (club.run_days && club.run_days.some((day: string) => filters.meetingDays.includes(day)));
+
+      // Extracurriculars filter
+      const matchesExtracurriculars = filters.extracurriculars.length === 0 || 
+        (club.extracurriculars && club.extracurriculars.some((activity: string) => filters.extracurriculars.includes(activity)));
+
+      // Club type filter
+      const matchesClubType = filters.clubType.length === 0 || 
+        (club.club_type && filters.clubType.includes(club.club_type));
+
+      // Terrain filter
+      const matchesTerrain = filters.terrain.length === 0 || 
+        (club.terrain && club.terrain.some(terrain => filters.terrain.includes(terrain)));
+
+      // Cost filter
+      const matchesCost = filters.isPaid.length === 0 || 
+        (club.is_paid && filters.isPaid.includes(club.is_paid));
+
+      // Map bounds filter
+      const isInBounds = isClubInBounds(club);
+
+      return matchesSearch && matchesState && matchesMeetingDay && matchesExtracurriculars && 
+             matchesClubType && matchesTerrain && matchesCost && isInBounds;
     });
-  }, [searchQuery, stateFilter, difficultyFilter, timeFilter, clubs]);
+      }, [searchQuery, filters, clubs, mapBounds]);
 
   // Paginate results
   const paginatedClubs = useMemo(() => {
@@ -77,22 +125,33 @@ export default function SearchPage() {
     setSelectedClubId(club.id);
   };
 
-  const clearFilters = () => {
-    setSearchQuery('');
-    setStateFilter('all');
-    setDifficultyFilter('all');
-    setTimeFilter('all');
-    setCurrentPage(1);
+  const handleFiltersChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
   };
+
+  const handleMapBoundsChange = (bounds: { north: number; south: number; east: number; west: number } | null) => {
+    setMapBounds(bounds);
+    setCurrentPage(1); // Reset to first page when map view changes
+  };
+
+  // Reset to page 1 when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navigation />
+        <SearchNavigation 
+          searchQuery={searchQuery} 
+          onSearchChange={setSearchQuery}
+          onFiltersChange={handleFiltersChange}
+          currentFilters={filters}
+        />
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-gray-600 text-xl">Loading clubs...</div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -100,198 +159,117 @@ export default function SearchPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navigation />
+        <SearchNavigation 
+          searchQuery={searchQuery} 
+          onSearchChange={setSearchQuery}
+          onFiltersChange={handleFiltersChange}
+          currentFilters={filters}
+        />
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-red-600 text-xl">{error}</div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
+      <SearchNavigation 
+        searchQuery={searchQuery} 
+        onSearchChange={setSearchQuery}
+        onFiltersChange={handleFiltersChange}
+        currentFilters={filters}
+      />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-black mb-4" style={{ color: '#021fdf' }}>
-            SEARCH RUN CLUBS
-          </h1>
-          <p className="text-lg text-gray-600 mb-6">
-            Find your perfect running community from {clubs.length} clubs across Australia
-          </p>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          {/* Search Bar */}
-          <div className="relative mb-4">
-            <input
-              type="text"
-              placeholder="Search by club name, location, or description..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+      {/* Main Layout - Full Height */}
+      <div className="flex h-[calc(100vh-80px)]">
+        {/* Left Side - Club List (50%) */}
+        <div className="w-1/2 flex flex-col">
+          {/* Results Header */}
+          <div className="bg-white border-b border-gray-200 p-4">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {filteredClubs.length} clubs found
+              </h2>
+              {searchQuery && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Showing results for "{searchQuery}"
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* Filter Toggle */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm mb-4"
-          >
-            {showFilters ? 'Hide Filters' : 'Show Filters'}
-          </button>
-
-          {/* Filters */}
-          {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-                <select
-                  value={stateFilter}
-                  onChange={(e) => setStateFilter(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">All States</option>
-                  {states.map(state => (
-                    <option key={state} value={state}>{state}</option>
+          {/* Club List Content */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Scrollable Club List */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {paginatedClubs.length > 0 ? (
+                <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
+                  {paginatedClubs.map(club => (
+                    <SearchClubCard
+                      key={club.id}
+                      club={club}
+                      isHighlighted={selectedClubId === club.id}
+                      onClick={() => handleMapClubClick(club)}
+                    />
                   ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
-                <select
-                  value={difficultyFilter}
-                  onChange={(e) => setDifficultyFilter(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">All Levels</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                  <option value="all-levels">All Levels</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Time of Day</label>
-                <select
-                  value={timeFilter}
-                  onChange={(e) => setTimeFilter(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">Any Time</option>
-                  <option value="morning">Morning</option>
-                  <option value="afternoon">Afternoon</option>
-                  <option value="evening">Evening</option>
-                </select>
-              </div>
-
-              <div className="flex items-end">
-                <Button onClick={clearFilters} variant="secondary" size="sm">
-                  Clear All
-                </Button>
-              </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Search className="h-16 w-16 text-gray-300 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No clubs found</h3>
+                  <p className="text-gray-600 text-center">
+                    Try adjusting your search terms or filters to find more clubs.
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Results */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Club List */}
-          <div>
-            <div className="mb-4">
-              <p className="text-gray-600">
-                Showing {paginatedClubs.length} of {filteredClubs.length} clubs
-              </p>
-            </div>
-
-            {paginatedClubs.length > 0 ? (
-              <div className="space-y-4">
-                {paginatedClubs.map(club => (
-                  <SearchClubCard
-                    key={club.id}
-                    club={club}
-                    isHighlighted={selectedClubId === club.id}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No clubs found</h3>
-                <p className="text-gray-600 mb-4">
-                  Try adjusting your search terms or filters
-                </p>
-                <Button onClick={clearFilters} variant="primary">
-                  Clear Filters
-                </Button>
-              </div>
-            )}
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center mt-8 space-x-2">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  const page = i + 1;
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-4 py-2 rounded-lg border ${
-                        currentPage === page
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-                
-                <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
+              <div className="border-t border-gray-200 bg-white px-4 py-3">
+                <div className="flex items-center justify-center space-x-2">
+                  <Button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    variant="secondary"
+                    size="sm"
+                    className="w-26 flex items-center justify-center"
+                  >
+                    <ChevronLeft className="h-4 w-4 ml-1" />
+                    Previous
+                  </Button>
+                  <span className="text-sm text-gray-700">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    variant="secondary"
+                    size="sm"
+                    className="w-26 flex items-center justify-center"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Map */}
-          <div className="sticky top-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900">Club Locations</h3>
-                  <MapPin className="h-5 w-5 text-gray-400" />
-                </div>
-              </div>
-              <MapComponent
-                clubs={filteredClubs}
-                onClubClick={handleMapClubClick}
-                height="600px"
-              />
-            </div>
+        {/* Right Side - Map (50%) */}
+        <div className="w-1/2 h-full">
+          <div className="h-full">
+            <MapComponent 
+              clubs={filteredClubs} 
+              onClubClick={handleMapClubClick}
+              onBoundsChange={handleMapBoundsChange}
+              height="100%"
+            />
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );

@@ -1,39 +1,19 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Navigation from '@/components/Navigation';
-import MapComponent from '@/components/MapComponent';
 import Footer from '@/components/Footer';
+import HeroImage from '@/components/HeroImage';
 import { getClubById } from '@/lib/supabase';
 import { 
   ArrowLeft,
-  MapPin, 
-  Clock, 
-  Calendar, 
-  Trophy,
-  ExternalLink,
+  MapPin,
   Instagram,
-  Users,
-  Activity
+  Globe
 } from 'lucide-react';
+import StravaIcon from '@/components/StravaIcon';
 
 interface ClubPageProps {
   params: Promise<{ id: string }>;
-}
-
-
-
-// Helper function to get time of day color styling
-function getTimeOfDayColor(timeOfDay: string) {
-  switch (timeOfDay) {
-    case 'morning':
-      return 'bg-orange-50 text-orange-700 border-orange-200';
-    case 'afternoon':
-      return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-    case 'evening':
-      return 'bg-purple-50 text-purple-700 border-purple-200';
-    default:
-      return 'bg-gray-50 text-gray-700 border-gray-200';
-  }
 }
 
 export default async function ClubPage({ params }: ClubPageProps) {
@@ -44,279 +24,202 @@ export default async function ClubPage({ params }: ClubPageProps) {
     notFound();
   }
 
+  // Days of the week mapping
+  const daysOfWeek = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  const dayMapping: { [key: string]: string } = {
+    'Mo': 'monday',
+    'Tu': 'tuesday', 
+    'We': 'wednesday',
+    'Th': 'thursday',
+    'Fr': 'friday',
+    'Sa': 'saturday',
+    'Su': 'sunday'
+  };
+
+  // Use club photo if available, otherwise fallback to placeholder
+  const heroImage = club.club_photo || `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop&crop=center`;
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f0f0f0]">
       <Navigation />
       
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back Navigation */}
-        <div className="mb-6">
-          <Link
-            href="/all-clubs"
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to All Clubs
-          </Link>
-        </div>
+      {/* Hero Section with Background Image */}
+      <HeroImage 
+        src={heroImage}
+        alt={`${club.name} group photo`}
+        clubName={club.name}
+      />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Club Photo Hero */}
-            {club.club_photo && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <img
-                  src={club.club_photo}
-                  alt={`${club.name} group photo`}
-                  className="w-full h-64 object-cover"
-                />
+      {/* Main Content - 2x2 Grid Layout */}
+      <div className="w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+          {/* Top Left - Off-white background, Blue text - Bio and Run Days */}
+          <div className="bg-[#f0f0f0] p-8 lg:p-12">
+            <div className="space-y-6">
+              {/* Club Description */}
+              <div>
+                <p className="text-lg text-[#021fdf] leading-relaxed">
+                  {club.description}
+                </p>
               </div>
-            )}
 
-            {/* Header */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex flex-wrap gap-3 mb-4">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getTimeOfDayColor(club.time_of_day)}`}>
-                  {club.time_of_day.charAt(0).toUpperCase() + club.time_of_day.slice(1)}
-                </span>
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                  {club.state}
-                </span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${
-                  club.club_type === 'everyone' 
-                    ? 'bg-green-100 text-green-800 border-green-200' 
-                    : 'bg-purple-100 text-purple-800 border-purple-200'
-                }`}>
-                  {club.club_type === 'everyone' ? 'Everyone' : club.club_type.charAt(0).toUpperCase() + club.club_type.slice(1).replace('-', ' ')}
-                </span>
-                {club.is_paid === 'paid' && (
-                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 border border-orange-200">
-                    Paid Club
-                  </span>
-                )}
-                {club.is_paid === 'free' && (
-                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
-                    Free Club
-                  </span>
+              {/* Run Sessions */}
+              <div className="space-y-4">
+                {club.run_sessions && club.run_sessions.length > 0 ? (
+                  club.run_sessions.map((session, index) => (
+                    <div key={index} className="space-y-1">
+                      <div className="font-black text-[#021fdf] uppercase">
+                        {session.day.slice(0, 3).toUpperCase()}, {session.time}
+                      </div>
+                      <div className="text-[#021fdf]">
+                        {session.location}
+                      </div>
+                      <div className="text-[#021fdf] opacity-80">
+                        {session.run_type}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="space-y-1">
+                    <div className="font-black text-[#021fdf] uppercase">
+                      {club.meeting_day.slice(0, 3).toUpperCase()}, {club.meeting_time}
+                    </div>
+                    <div className="text-[#021fdf]">
+                      {club.location}
+                    </div>
+                  </div>
                 )}
               </div>
-              
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{club.name}</h1>
-              
-              <p className="text-lg text-gray-700 leading-relaxed">{club.description}</p>
-            </div>
-
-            {/* Meeting Details */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Meeting Details</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex items-start space-x-3">
-                  <MapPin className="h-5 w-5 text-gray-500 mt-1" />
-                  <div>
-                    <div className="font-medium text-gray-900">Location</div>
-                    <div className="text-gray-600">{club.location}</div>
-                    <div className="text-sm text-gray-500">{club.postcode}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <Calendar className="h-5 w-5 text-gray-500 mt-1" />
-                  <div>
-                    <div className="font-medium text-gray-900">Meeting Day</div>
-                    <div className="text-gray-600">{club.meeting_day}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <Clock className="h-5 w-5 text-gray-500 mt-1" />
-                  <div>
-                    <div className="font-medium text-gray-900">Meeting Time</div>
-                    <div className="text-gray-600">{club.meeting_time}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <Trophy className="h-5 w-5 text-gray-500 mt-1" />
-                  <div>
-                    <div className="font-medium text-gray-900">Distance Focus</div>
-                    <div className="text-gray-600">{club.distance_focus.join(', ')}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Distance Focus Details */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Training Focus</h2>
-              <div className="flex flex-wrap gap-2">
-                {club.distance_focus.map((distance) => (
-                  <span
-                    key={distance}
-                    className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 font-medium"
-                  >
-                    {distance}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Terrain */}
-            {club.terrain && club.terrain.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Terrain</h2>
-                <div className="flex flex-wrap gap-2">
-                  {club.terrain.map((terrain) => (
-                    <span
-                      key={terrain}
-                      className="px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200 font-medium"
-                    >
-                      {terrain.charAt(0).toUpperCase() + terrain.slice(1)}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Map */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Meeting Location</h2>
-              <MapComponent 
-                clubs={[club]} 
-                height="400px"
-              />
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Information */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Get in Touch</h2>
-              
-              <div className="space-y-4">
-                {club.website && (
-                  <a
-                    href={club.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
-                  >
-                    <ExternalLink className="h-5 w-5 text-gray-500 group-hover:text-gray-700" />
-                    <div className="ml-3">
-                      <div className="font-medium text-gray-900">Website</div>
-                      <div className="text-sm text-gray-600">Visit our website</div>
-                    </div>
-                  </a>
-                )}
-                
-                {club.instagram && (
-                  <a
-                    href={`https://instagram.com/${club.instagram.replace('@', '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
-                  >
-                    <Instagram className="h-5 w-5 text-gray-500 group-hover:text-gray-700" />
-                    <div className="ml-3">
-                      <div className="font-medium text-gray-900">Instagram</div>
-                      <div className="text-sm text-gray-600">{club.instagram}</div>
-                    </div>
-                  </a>
-                )}
-
-                {club.strava && (
-                  <a
-                    href={club.strava}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
-                  >
-                    <Activity className="h-5 w-5 text-gray-500 group-hover:text-gray-700" />
-                    <div className="ml-3">
-                      <div className="font-medium text-gray-900">Strava</div>
-                      <div className="text-sm text-gray-600">Join our Strava group</div>
-                    </div>
-                  </a>
-                )}
+          {/* Top Right - Blue background, White text - Location, Schedule, Terrain, Extras, Cost */}
+          <div className="bg-[#021fdf] p-8 lg:p-12">
+            <div className="space-y-6">
+              {/* Location */}
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-5 w-5 text-white" />
+                <span className="font-semibold text-white">
+                  {club.suburb}, {club.state}
+                </span>
               </div>
-            </div>
 
-            {/* Quick Info */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Info</h2>
-              
-              <div className="space-y-3">
+              {/* Days Schedule */}
+              <div className="flex space-x-2">
+                {daysOfWeek.map((day) => {
+                  const isActive = club.run_days.some(runDay => 
+                    runDay.toLowerCase().includes(dayMapping[day])
+                  );
+                  return (
+                    <div
+                      key={day}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-[#f0f0f0] text-[#021fdf] shadow-lg transform scale-105' 
+                          : 'bg-[#021fdf] border-2 border-[#f0f0f0] border-opacity-30 text-[#f0f0f0] text-opacity-70'
+                      }`}
+                    >
+                      {day}
+                    </div>
+                  );
+                })}
+              </div>
 
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Time of Day</span>
-                  <span className="font-medium text-gray-900 capitalize">{club.time_of_day}</span>
+              {/* Terrain */}
+              {club.terrain && club.terrain.length > 0 && (
+                <div>
+                  <h3 className="font-black text-white uppercase mb-2">TERRAIN</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {club.terrain.map((terrain) => (
+                      <span
+                        key={terrain}
+                        className="px-4 py-2 bg-[#f0f0f0] text-[#021fdf] rounded-lg text-sm font-bold uppercase shadow-md"
+                      >
+                        {terrain}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">State</span>
-                  <span className="font-medium text-gray-900">{club.state}</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Meeting Day</span>
-                  <span className="font-medium text-gray-900">{club.meeting_day}</span>
-                </div>
+              )}
 
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Club Type</span>
-                  <span className="font-medium text-gray-900 capitalize">{club.club_type}</span>
+              {/* Extras */}
+              {club.extracurriculars && club.extracurriculars.length > 0 && (
+                <div>
+                  <h3 className="font-black text-white uppercase mb-2">EXTRAS</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {club.extracurriculars.map((activity) => (
+                      <span
+                        key={activity}
+                        className="px-4 py-2 bg-[#f0f0f0] text-[#021fdf] rounded-lg text-sm font-bold uppercase shadow-md"
+                      >
+                        {activity}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+              )}
 
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Cost</span>
-                  <span className="font-medium text-gray-900 capitalize">{club.is_paid}</span>
+              {/* Cost */}
+              <div>
+                <h3 className="font-black text-white uppercase mb-2">COST</h3>
+                <div className="px-4 py-2 bg-[#f0f0f0] text-[#021fdf] rounded-lg text-sm font-bold uppercase inline-block shadow-md">
+                  {club.is_paid === 'free' ? 'FREE' : 'PAID'}
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Extracurriculars */}
-            {club.extracurriculars && club.extracurriculars.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Activities</h2>
-                <div className="space-y-2">
-                  {club.extracurriculars.map((activity, index) => (
-                    <div key={index} className="text-sm text-gray-600">
-                      • {activity}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+          {/* Bottom Left - Blue background, White text - Check Socials Text */}
+          <div className="bg-[#021fdf] p-8 lg:p-12 flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-white font-black text-2xl uppercase leading-tight">
+                FOR THE LATEST INFORMATION CHECK {club.name} SOCIAL PAGES.
+              </h2>
+            </div>
+          </div>
 
-            {/* CTA */}
-            <div className="bg-blue-50 rounded-lg border border-blue-200 p-6 text-center">
-              <Users className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Ready to Join?</h3>
-              <p className="text-gray-600 mb-4 text-sm">
-                Get in touch with {club.name} to learn more about joining this amazing running community.
-              </p>
-              {club.website ? (
+          {/* Bottom Right - Off-white background, Blue elements - Social Links */}
+          <div className="bg-[#f0f0f0] p-8 lg:p-12 flex items-center justify-center">
+            <div className="flex justify-center space-x-8">
+              {club.instagram && (
+                <a
+                  href={club.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#021fdf] hover:text-blue-700 transition-all duration-200 transform hover:scale-110 hover:shadow-lg"
+                >
+                  <Instagram className="h-14 w-14" />
+                </a>
+              )}
+              
+              {club.website && (
                 <a
                   href={club.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  className="text-[#021fdf] hover:text-blue-700 transition-all duration-200 transform hover:scale-110 hover:shadow-lg"
                 >
-                  Visit Website
-                  <ExternalLink className="ml-2 h-4 w-4" />
+                  <Globe className="h-14 w-14" />
                 </a>
-              ) : (
-                <p className="text-sm text-gray-500">
-                  Contact through social media links above
-                </p>
+              )}
+
+              {club.strava && (
+                <a
+                  href={club.strava}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#021fdf] hover:text-blue-700 transition-all duration-200 transform hover:scale-110 hover:shadow-lg"
+                >
+                  <StravaIcon className="h-14 w-14" />
+                </a>
               )}
             </div>
           </div>
         </div>
       </div>
+
+
+
       <Footer />
     </div>
   );
