@@ -25,7 +25,8 @@ export default function Navigation() {
           <div className="flex items-center space-x-4">
             {/* ADD YOUR CLUB Button */}
             <Button href="/add-club" variant="primary" size="md">
-              ADD YOUR CLUB
+              <span className="hidden sm:inline">ADD YOUR CLUB</span>
+              <span className="sm:hidden">ADD CLUB</span>
             </Button>
             
             {/* Burger Menu Button */}

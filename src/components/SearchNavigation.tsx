@@ -91,7 +91,7 @@ export default function SearchNavigation({
               />
               <button
                 onClick={handleSearch}
-                className="px-8 py-4 text-white font-black hover:opacity-90 transition-all duration-200 text-sm tracking-wide rounded-full"
+                className="px-6 py-4 mr-0.5 text-white font-black hover:opacity-90 transition-all duration-200 text-sm tracking-wide rounded-full"
                 style={{ backgroundColor: '#021fdf' }}
               >
                 SEARCH
@@ -100,22 +100,24 @@ export default function SearchNavigation({
           </div>
 
           {/* Filters Button - Enhanced styling */}
-          <button
-            onClick={() => setIsFiltersOpen(true)}
-            className="flex items-center justify-center space-x-3 w-full px-6 py-4 bg-white text-gray-800 rounded-full hover:bg-gray-50 transition-all duration-200 font-black shadow-2xl border-2 backdrop-blur-sm"
-            style={{ borderColor: '#f0f0f0' }}
-          >
-            <Filter className="h-5 w-5" style={{ color: '#021fdf' }} />
-            <span className="tracking-wide text-lg" style={{ color: '#021fdf' }}>FILTERS</span>
-            {activeFilterCount > 0 && (
-              <span 
-                className="text-white text-xs font-bold rounded-full px-3 py-1"
-                style={{ backgroundColor: '#021fdf' }}
-              >
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
+          <div className="flex justify-center">
+            <button
+              onClick={() => setIsFiltersOpen(true)}
+              className="flex items-center justify-center space-x-3 px-8 py-4 bg-white text-gray-800 rounded-full hover:bg-gray-50 transition-all duration-200 font-black shadow-2xl border-2 backdrop-blur-sm"
+              style={{ borderColor: '#f0f0f0' }}
+                        >
+              <Filter className="h-5 w-5" style={{ color: '#021fdf' }} />
+              <span className="tracking-wide text-lg" style={{ color: '#021fdf' }}>FILTERS</span>
+              {activeFilterCount > 0 && (
+                <span 
+                  className="text-white text-xs font-bold rounded-full px-3 py-1"
+                  style={{ backgroundColor: '#021fdf' }}
+                >
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Filter Dialog */}
