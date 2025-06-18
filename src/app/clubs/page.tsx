@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import { getAllClubs } from '@/lib/supabase';
 import { RunClub } from '@/types';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import Navigation from '@/components/Navigation';
 
 interface FilterState {
   states: string[];
@@ -37,7 +38,6 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
-
   const itemsPerPage = 15;
 
   // Load clubs on component mount
@@ -174,17 +174,36 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SearchNavigation 
-        searchQuery={searchQuery} 
-        onSearchChange={setSearchQuery}
-        onFiltersChange={handleFiltersChange}
-        currentFilters={filters}
-      />
+      {/* Desktop Navigation */}
+      <div className="hidden md:block">
+        <SearchNavigation 
+          searchQuery={searchQuery} 
+          onSearchChange={setSearchQuery}
+          onFiltersChange={handleFiltersChange}
+          currentFilters={filters}
+        />
+      </div>
       
-      {/* Main Layout - Full Height */}
-      <div className="flex h-[calc(100vh-80px)]">
-        {/* Left Side - Club List (50%) */}
-        <div className="w-1/2 flex flex-col">
+      {/* Mobile Normal Header */}
+      <div className="md:hidden">
+        <Navigation />
+      </div>
+      
+      {/* Mobile Floating Search/Filters */}
+      <div className="md:hidden">
+        <SearchNavigation 
+          searchQuery={searchQuery} 
+          onSearchChange={setSearchQuery}
+          onFiltersChange={handleFiltersChange}
+          currentFilters={filters}
+          isMobileMapView={true}
+        />
+      </div>
+      
+      {/* Main Layout */}
+      <div className="flex h-[calc(100vh-64px)] md:h-[calc(100vh-80px)]">
+        {/* Left Side - Club List (Desktop only) */}
+        <div className="hidden md:flex md:w-1/2 flex-col">
           {/* Results Header */}
           <div className="bg-white border-b border-gray-200 p-4">
             <div className="mb-4">
@@ -258,9 +277,9 @@ export default function SearchPage() {
           </div>
         </div>
 
-        {/* Right Side - Map (50%) */}
-        <div className="w-1/2 h-full">
-          <div className="h-full">
+        {/* Right Side - Map (Full width on mobile, 50% on desktop) */}
+        <div className="w-full md:w-1/2 h-full">
+          <div className="h-full relative">
             <MapComponent 
               clubs={filteredClubs} 
               onClubClick={handleMapClubClick}

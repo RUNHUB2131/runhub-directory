@@ -335,11 +335,6 @@ export default function MapComponent({
           minHeight: height === '100%' ? '400px' : undefined
         }}
       />
-      <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md p-2 z-[1000]">
-        <div className="text-xs text-gray-600">
-          {clubs.length} club{clubs.length !== 1 ? 's' : ''} shown
-        </div>
-      </div>
 
 
       {/* Small Club Info Popup */}

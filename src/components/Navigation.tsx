@@ -40,7 +40,7 @@ export default function Navigation() {
 
         {/* Burger Menu Dropdown */}
         {isMenuOpen && (
-          <div className="absolute right-0 top-16 w-64 bg-white border border-gray-200 rounded-lg shadow-lg" style={{ marginRight: '1rem' }}>
+          <div className="absolute right-0 top-16 w-64 bg-white border border-gray-200 rounded-lg shadow-2xl" style={{ marginRight: '1rem', zIndex: '9999 !important' }}>
             <div className="flex flex-col py-2">
               <Link 
                 href="/" 
