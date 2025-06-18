@@ -83,7 +83,7 @@ export async function GET(
               <div style="margin: 20px 0;">
                 <p>Your club is now visible to runners across Australia who are looking for their perfect running community.</p>
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${baseUrl}/clubs/${club.id}" style="background-color: #021fdf; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+                  <a href="${baseUrl}/clubs/${club.slug}" style="background-color: #021fdf; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
                     View Your Club Page
                   </a>
                 </div>
@@ -112,7 +112,7 @@ export async function GET(
   }
 }
 
-function getSuccessHtml(club: { id: string; club_name: string; contact_name: string; suburb_or_town: string; state: string }, action: string) {
+function getSuccessHtml(club: { id: string; club_name: string; contact_name: string; suburb_or_town: string; state: string; slug: string }, action: string) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   
   return `
@@ -172,7 +172,7 @@ function getSuccessHtml(club: { id: string; club_name: string; contact_name: str
           <p><strong>Location:</strong> ${club.suburb_or_town}, ${club.state}</p>
           <p><strong>Status:</strong> ${action === 'approve' ? 'Approved and live on directory' : 'Rejected'}</p>
           ${action === 'approve' ? 
-            `<p><strong>Club URL:</strong> <a href="${baseUrl}/clubs/${club.id}" target="_blank">${baseUrl}/clubs/${club.id}</a></p>
+            `<p><strong>Club URL:</strong> <a href="${baseUrl}/clubs/${club.slug}" target="_blank">${baseUrl}/clubs/${club.slug}</a></p>
              <p style="color: #22c55e; font-weight: bold;">✓ Confirmation email sent to club owner</p>` : 
             `<p style="color: #f59e0b;">Club owner has not been notified automatically. You may want to send a personal message.</p>`
           }
@@ -180,7 +180,7 @@ function getSuccessHtml(club: { id: string; club_name: string; contact_name: str
           <div style="margin-top: 20px;">
             <a href="${baseUrl}/directory" class="button">View Directory</a>
             ${action === 'approve' ? 
-              `<a href="${baseUrl}/clubs/${club.id}" class="button">View Club Page</a>` : 
+              `<a href="${baseUrl}/clubs/${club.slug}" class="button">View Club Page</a>` : 
               ''
             }
           </div>
