@@ -107,7 +107,7 @@ export default function SearchClubCard({ club, isHighlighted = false, onClick }:
   };
 
   return (
-    <Link href={`/clubs/${club.id}`} className="block" onClick={handleClick}>
+    <Link href={`/clubs/${club.slug}`} className="block" onClick={handleClick}>
       <div 
         className={`rounded-xl border-2 p-2 hover:scale-105 transition-transform duration-200 ${
           isHighlighted 

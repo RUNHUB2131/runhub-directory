@@ -4,6 +4,43 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Generate a unique slug for a club name
+async function generateUniqueSlug(clubName: string): Promise<string> {
+  // Convert to lowercase and replace spaces/special chars with hyphens
+  let baseSlug = clubName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+
+  let slug = baseSlug;
+  let counter = 1;
+
+  // Check if slug exists, if so, add a number
+  while (true) {
+    const { data, error } = await supabase
+      .from('run_clubs')
+      .select('id')
+      .eq('slug', slug)
+      .single();
+
+    if (error && error.code === 'PGRST116') {
+      // No rows found, slug is unique
+      break;
+    }
+
+    if (data) {
+      // Slug exists, try with a number
+      counter++;
+      slug = `${baseSlug}-${counter}`;
+    } else {
+      // Some other error, but let's continue
+      break;
+    }
+  }
+
+  return slug;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.json();
@@ -25,6 +62,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'At least one complete run session is required (day, time, location, and run type)' }, { status: 400 });
     }
 
+    // Generate unique slug
+    const slug = await generateUniqueSlug(formData.clubName);
+
     // Upload club photo if exists (placeholder for now)
     let clubPhotoUrl = null;
     if (formData.clubPhoto) {
@@ -37,6 +77,7 @@ export async function POST(request: NextRequest) {
       .from('run_clubs')
       .insert({
         club_name: formData.clubName,
+        slug: slug,
         contact_name: formData.contactName,
         short_bio: formData.shortBio,
         website_url: formData.websiteUrl || null,

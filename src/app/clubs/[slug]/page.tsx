@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import HeroImage from '@/components/HeroImage';
-import { getClubById } from '@/lib/supabase';
+import { getClubBySlug } from '@/lib/supabase';
 import { 
   ArrowLeft,
   MapPin,
@@ -13,12 +13,12 @@ import {
 import StravaIcon from '@/components/StravaIcon';
 
 interface ClubPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export default async function ClubPage({ params }: ClubPageProps) {
-  const { id } = await params;
-  const club = await getClubById(id);
+  const { slug } = await params;
+  const club = await getClubBySlug(slug);
 
   if (!club) {
     notFound();

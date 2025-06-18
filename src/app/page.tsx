@@ -64,7 +64,7 @@ export default function HomePage() {
   const handleSearch = () => {
     if (searchQuery.trim()) {
       // Navigate to search page with query
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
+      window.location.href = `/clubs?q=${encodeURIComponent(searchQuery)}`;
     }
   };
 
@@ -143,7 +143,7 @@ export default function HomePage() {
                   {searchResults.map(club => (
                     <Link
                       key={club.id}
-                      href={`/clubs/${club.id}`}
+                      href={`/clubs/${club.slug}`}
                       className="block p-2 hover:bg-gray-50 rounded-md transition-colors"
                     >
                       <div className="text-gray-900 font-medium">{club.name}</div>
@@ -151,7 +151,7 @@ export default function HomePage() {
                     </Link>
                   ))}
                   <Link
-                    href="/all-clubs"
+                    href="/directory"
                     className="block mt-2 text-sm font-medium hover:opacity-80 transition-colors"
                     style={{ color: '#021fdf' }}
                   >
@@ -205,7 +205,7 @@ export default function HomePage() {
           )}
           
           <div className="text-center mt-12">
-            <Button href="/all-clubs" variant="secondary" size="lg">
+            <Button href="/directory" variant="secondary" size="lg">
               <span className="inline-flex items-center">
                 View All Clubs ({clubs.length})
                 <MapPin className="ml-2 h-5 w-5" />

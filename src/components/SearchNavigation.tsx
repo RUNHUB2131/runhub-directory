@@ -187,7 +187,7 @@ export default function SearchNavigation({
                   HOME
                 </Link>
                 <Link 
-                  href="/search" 
+                  href="/clubs" 
                   className="text-gray-600 hover:bg-gray-50 font-medium px-4 py-3 transition-colors"
                   onMouseEnter={(e) => e.currentTarget.style.color = '#021fdf'}
                   onMouseLeave={(e) => e.currentTarget.style.color = ''}
@@ -196,7 +196,7 @@ export default function SearchNavigation({
                   SEARCH
                 </Link>
                 <Link 
-                  href="/all-clubs" 
+                  href="/directory" 
                   className="text-gray-600 hover:bg-gray-50 font-medium px-4 py-3 transition-colors"
                   onMouseEnter={(e) => e.currentTarget.style.color = '#021fdf'}
                   onMouseLeave={(e) => e.currentTarget.style.color = ''}

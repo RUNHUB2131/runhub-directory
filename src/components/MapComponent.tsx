@@ -488,7 +488,7 @@ export default function MapComponent({
 
             {/* Action button */}
             <a
-              href={`/clubs/${selectedClub.id}`}
+              href={`/clubs/${selectedClub.slug}`}
               className="block w-full text-center px-3 py-2 text-white rounded-lg hover:opacity-90 transition-colors text-xs font-bold uppercase"
               style={{ backgroundColor: '#021fdf' }}
             >

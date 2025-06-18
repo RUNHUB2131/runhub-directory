@@ -13,6 +13,7 @@ export async function getAllClubs(): Promise<RunClub[]> {
     .from('run_clubs')
     .select(`
       id,
+      slug,
       club_name,
       contact_name,
       short_bio,
@@ -50,11 +51,56 @@ export async function getAllClubs(): Promise<RunClub[]> {
   return transformRunClubs(data as DatabaseRunClub[]);
 }
 
+export async function getClubBySlug(slug: string): Promise<RunClub | null> {
+  const { data, error } = await supabase
+    .from('run_clubs')
+    .select(`
+      id,
+      slug,
+      club_name,
+      contact_name,
+      short_bio,
+      website_url,
+      instagram_url,
+      strava_url,
+      additional_url,
+      suburb_or_town,
+      postcode,
+      state,
+      latitude,
+      longitude,
+      run_details,
+      run_days,
+      run_sessions,
+      club_type,
+      is_paid,
+      extracurriculars,
+      terrain,
+      club_photo,
+      created_at,
+      updated_at
+    `)
+    .eq('slug', slug)
+    .eq('status', 'approved')
+    .single();
+
+  if (error) {
+    console.error('Error fetching club by slug:', error);
+    return null;
+  }
+
+  if (!data) return null;
+
+  // Transform database record to frontend format
+  return transformRunClub(data as DatabaseRunClub);
+}
+
 export async function getClubById(id: string): Promise<RunClub | null> {
   const { data, error } = await supabase
     .from('run_clubs')
     .select(`
       id,
+      slug,
       club_name,
       contact_name,
       short_bio,
@@ -98,6 +144,7 @@ export async function searchClubs(query: string): Promise<RunClub[]> {
     .from('run_clubs')
     .select(`
       id,
+      slug,
       club_name,
       contact_name,
       short_bio,
@@ -141,6 +188,7 @@ export async function getClubsByState(state: string): Promise<RunClub[]> {
     .from('run_clubs')
     .select(`
       id,
+      slug,
       club_name,
       contact_name,
       short_bio,
@@ -189,6 +237,7 @@ export async function getClubsByFilters(filters: {
     .from('run_clubs')
     .select(`
       id,
+      slug,
       club_name,
       contact_name,
       short_bio,

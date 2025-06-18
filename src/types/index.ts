@@ -11,6 +11,7 @@ export interface RunSession {
 // Database types - matching the Supabase schema
 export interface DatabaseRunClub {
   id: string;
+  slug: string; // unique slug from database
   club_name: string;
   contact_name: string;
   short_bio: string;
@@ -47,6 +48,7 @@ export interface DatabaseRunClub {
 // Transformed types for frontend components
 export interface RunClub {
   id: string;
+  slug: string; // unique slug for club details route
   // Basic club info - transformed from database
   name: string; // from club_name
   description: string; // from short_bio

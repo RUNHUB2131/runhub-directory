@@ -103,7 +103,7 @@ export default function ClubCard({ club, variant = 'dark' }: ClubCardProps) {
   const borderColor = variant === 'light' ? '#021fdf' : 'white';
 
   return (
-    <Link href={`/clubs/${club.id}`} className="block">
+    <Link href={`/clubs/${club.slug}`} className="block">
       <div 
         className="rounded-3xl border-2 p-2 hover:scale-105 transition-transform duration-200 h-full"
         style={{ borderColor }}

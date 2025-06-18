@@ -7,6 +7,7 @@ import { DatabaseRunClub, RunClub, RunSession } from '@/types';
 export function transformRunClub(dbClub: DatabaseRunClub): RunClub {
   return {
     id: dbClub.id,
+    slug: dbClub.slug,
     
     // Basic info transformations
     name: dbClub.club_name,

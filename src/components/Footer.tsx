@@ -56,8 +56,8 @@ export default function Footer() {
           <div>
             <div className="space-y-3">
               <Link href="/" className="block text-white hover:opacity-80 transition-colors">Home</Link>
-              <Link href="/search" className="block text-white hover:opacity-80 transition-colors">Search</Link>
-                              <Link href="/all-clubs" className="block text-white hover:opacity-80 transition-colors">All Clubs</Link>
+              <Link href="/clubs" className="block text-white hover:opacity-80 transition-colors">Search</Link>
+                              <Link href="/directory" className="block text-white hover:opacity-80 transition-colors">All Clubs</Link>
               <Link href="/faq" className="block text-white hover:opacity-80 transition-colors">FAQ</Link>
               <Link href="/about" className="block text-white hover:opacity-80 transition-colors">About Us</Link>
               <Link href="/contact" className="block text-white hover:opacity-80 transition-colors">Contact Us</Link>
@@ -94,7 +94,7 @@ export default function Footer() {
               )}
             </form>
             <p className="text-sm text-white/80 mt-2">
-              By subscribing you agree to our <Link href="/privacy-policy" className="underline text-white hover:text-white/80 transition-colors">privacy policy</Link>
+              By subscribing you agree to our <Link href="/privacy" className="underline text-white hover:text-white/80 transition-colors">privacy policy</Link>
             </p>
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function Footer() {
           />
           <div className="text-blue-200">© 2025, RUNHUB</div>
           <div className="text-blue-200">
-            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
           </div>
         </div>
       </div>
