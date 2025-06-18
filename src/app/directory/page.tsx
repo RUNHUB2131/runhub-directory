@@ -105,25 +105,46 @@ export default function AllClubsPage() {
           </p>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar - Desktop: inline, Mobile: button underneath */}
         <div className="max-w-4xl mx-auto mb-8">
           <div className="relative">
+            {/* Desktop Search Bar */}
             <div 
-              className="flex items-center rounded-full border-4 overflow-hidden"
+              className="hidden md:flex items-center rounded-full border-4 overflow-hidden"
               style={{ borderColor: '#f0f0f0' }}
             >
-                              <input
-                  type="text"
-                  placeholder="Search clubs by name, location, or description..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && setSearchQuery(searchQuery)}
-                  className="flex-1 px-8 py-6 text-lg focus:outline-none placeholder-gray-300"
-                  style={{ backgroundColor: '#021fdf', color: '#f0f0f0' }}
-                />
+              <input
+                type="text"
+                placeholder="Search clubs by name, location, or description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && setSearchQuery(searchQuery)}
+                className="flex-1 px-8 py-6 text-lg focus:outline-none placeholder-gray-300"
+                style={{ backgroundColor: '#021fdf', color: '#f0f0f0' }}
+              />
               <button
                 onClick={() => setSearchQuery(searchQuery)}
                 className="px-12 py-6 font-bold text-lg rounded-full hover:opacity-90 transition-colors"
+                style={{ backgroundColor: '#f0f0f0', color: '#021fdf' }}
+              >
+                SEARCH
+              </button>
+            </div>
+
+            {/* Mobile Search Bar */}
+            <div className="md:hidden space-y-4">
+              <input
+                type="text"
+                placeholder="Search clubs by name, location, or description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && setSearchQuery(searchQuery)}
+                className="w-full px-6 py-4 text-lg focus:outline-none placeholder-gray-300 rounded-full border-4"
+                style={{ backgroundColor: '#021fdf', color: '#f0f0f0', borderColor: '#f0f0f0' }}
+              />
+              <button
+                onClick={() => setSearchQuery(searchQuery)}
+                className="w-full px-8 py-4 font-bold text-lg rounded-full hover:opacity-90 transition-colors"
                 style={{ backgroundColor: '#f0f0f0', color: '#021fdf' }}
               >
                 SEARCH

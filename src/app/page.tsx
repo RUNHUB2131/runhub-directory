@@ -110,11 +110,12 @@ export default function HomePage() {
               FIND THE PERFECT RUN CLUB
             </h1>
             
-            {/* Search Bar - Matching the exact original design */}
+            {/* Search Bar - Desktop: inline, Mobile: button underneath */}
             <div className="max-w-4xl mx-auto mb-8">
               <div className="relative">
+                {/* Desktop Search Bar */}
                 <div 
-                  className="flex items-center rounded-full border-4 overflow-hidden"
+                  className="hidden md:flex items-center rounded-full border-4 overflow-hidden"
                   style={{ borderColor: '#021fdf' }}
                 >
                   <input
@@ -129,6 +130,26 @@ export default function HomePage() {
                   <button
                     onClick={handleSearch}
                     className="px-12 py-6 text-white font-bold text-lg rounded-full hover:opacity-90 transition-colors"
+                    style={{ backgroundColor: '#021fdf' }}
+                  >
+                    SEARCH
+                  </button>
+                </div>
+
+                {/* Mobile Search Bar */}
+                <div className="md:hidden space-y-4">
+                  <input
+                    type="text"
+                    placeholder="City, Town, Suburb"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="w-full px-6 py-4 text-lg text-gray-600 bg-white focus:outline-none placeholder-gray-400 rounded-full border-4"
+                    style={{ backgroundColor: 'white', borderColor: '#021fdf' }}
+                  />
+                  <button
+                    onClick={handleSearch}
+                    className="w-full px-8 py-4 text-white font-bold text-lg rounded-full hover:opacity-90 transition-colors"
                     style={{ backgroundColor: '#021fdf' }}
                   >
                     SEARCH
