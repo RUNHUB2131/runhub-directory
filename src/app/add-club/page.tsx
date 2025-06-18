@@ -15,6 +15,37 @@ interface RunSession {
   description?: string;
 }
 
+function normalizeUrl(input: string, type?: 'instagram' | 'strava' | 'website' | 'other'): string {
+  if (!input) return '';
+  let url = input.trim();
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  if (url.startsWith('www.')) {
+    return `https://${url}`;
+  }
+  if (type === 'instagram') {
+    url = url.replace(/^@/, '');
+    if (!url.startsWith('instagram.com')) {
+      return `https://instagram.com/${url}`;
+    }
+    return `https://${url}`;
+  }
+  if (type === 'strava') {
+    url = url.replace(/^@/, '');
+    if (!url.startsWith('strava.com')) {
+      return `https://strava.com/clubs/${url}`;
+    }
+    return `https://${url}`;
+  }
+  if (type === 'website' || type === 'other') {
+    if (url.includes('.')) {
+      return `https://${url}`;
+    }
+  }
+  return url;
+}
+
 export default function AddClubPage() {
   const [formData, setFormData] = useState({
     clubName: '',
@@ -119,8 +150,17 @@ export default function AddClubPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Normalize URLs before submit
+    const normalizedFormData = {
+      ...formData,
+      websiteUrl: normalizeUrl(formData.websiteUrl, 'website'),
+      instagramUrl: normalizeUrl(formData.instagramUrl, 'instagram'),
+      stravaUrl: normalizeUrl(formData.stravaUrl, 'strava'),
+      additionalUrl: normalizeUrl(formData.additionalUrl, 'other'),
+    };
+    
     // Validate that at least one run session has required fields
-    const validRunSessions = formData.runSessions.filter(session => 
+    const validRunSessions = normalizedFormData.runSessions.filter(session => 
       session.day && session.time && session.location && session.run_type
     );
     
@@ -136,7 +176,7 @@ export default function AddClubPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
+          ...normalizedFormData,
           runSessions: validRunSessions
         }),
       });
@@ -273,7 +313,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
                   style={{ '--tw-ring-color': '#021fdf' } as any}
-                  placeholder="https://yourrunclub.com"
+                  placeholder="yourrunclub.com or handle or full URL"
                 />
               </div>
 
@@ -288,7 +328,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
                   style={{ '--tw-ring-color': '#021fdf' } as any}
-                  placeholder="https://instagram.com/yourrunclub"
+                  placeholder="@yourrunclub, handle, or full URL"
                 />
               </div>
 
@@ -303,7 +343,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
                   style={{ '--tw-ring-color': '#021fdf' } as any}
-                  placeholder="https://strava.com/clubs/yourclub"
+                  placeholder="strava.com/yourclub, handle, or full URL"
                 />
               </div>
 
@@ -318,7 +358,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
                   style={{ '--tw-ring-color': '#021fdf' } as any}
-                  placeholder="https://example.com"
+                  placeholder="example.com or handle or full URL"
                 />
               </div>
             </div>

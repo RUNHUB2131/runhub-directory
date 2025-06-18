@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface FAQItem {
   question: string;
-  answer: string;
+  answer: ReactNode;
 }
 
 const faqData: FAQItem[] = [
@@ -29,7 +29,9 @@ const faqData: FAQItem[] = [
   },
   {
     question: "My club's details have changed, how can I update our page?",
-    answer: "Please complete this short submission form here. Our team will update your page in 48-72hrs."
+    answer: (
+      <>Please complete this short submission form <a href="https://forms.gle/b7g1XQsY9mJY1p5x6" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">here</a>. Our team will update your page in 48-72hrs.</>
+    )
   },
   {
     question: "I tried attending a run club, but they weren't there.",
