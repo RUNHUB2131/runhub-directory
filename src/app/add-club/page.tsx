@@ -26,10 +26,10 @@ function normalizeUrl(input: string, type?: 'instagram' | 'strava' | 'website' |
   }
   if (type === 'instagram') {
     url = url.replace(/^@/, '');
-    if (!url.startsWith('instagram.com')) {
-      return `https://instagram.com/${url}`;
+    if (!url.startsWith('instagram.com') && !url.startsWith('www.instagram.com')) {
+      return `https://www.instagram.com/${url}`;
     }
-    return `https://${url}`;
+    return url.startsWith('www.instagram.com') ? `https://${url}` : `https://www.${url}`;
   }
   if (type === 'strava') {
     url = url.replace(/^@/, '');

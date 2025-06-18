@@ -245,13 +245,13 @@ function cleanInstagramUrl(url?: string): string | undefined {
   let cleaned = url.trim();
   
   // Extract Instagram handle if it's a full URL
-  const instagramMatch = cleaned.match(/instagram\.com\/([^\/\?]+)/);
+  const instagramMatch = cleaned.match(/(?:www\.)?instagram\.com\/([^\/\?]+)/);
   if (instagramMatch) {
-    cleaned = `https://instagram.com/${instagramMatch[1]}`;
+    cleaned = `https://www.instagram.com/${instagramMatch[1]}`;
   } else if (!cleaned.startsWith('http')) {
     // If it's just a handle, construct the full URL
     cleaned = cleaned.replace('@', '');
-    cleaned = `https://instagram.com/${cleaned}`;
+    cleaned = `https://www.instagram.com/${cleaned}`;
   }
   
   try {
