@@ -18,31 +18,41 @@ interface RunSession {
 function normalizeUrl(input: string, type?: 'instagram' | 'strava' | 'website' | 'other'): string {
   if (!input) return '';
   let url = input.trim();
+  
+  // If it already has a protocol, return as-is
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url;
   }
+  
+  // If it starts with www., add https://
   if (url.startsWith('www.')) {
     return `https://${url}`;
   }
+  
   if (type === 'instagram') {
-    url = url.replace(/^@/, '');
+    url = url.replace(/^@/, ''); // Remove @ symbol if present
     if (!url.startsWith('instagram.com') && !url.startsWith('www.instagram.com')) {
       return `https://www.instagram.com/${url}`;
     }
     return url.startsWith('www.instagram.com') ? `https://${url}` : `https://www.${url}`;
   }
+  
   if (type === 'strava') {
-    url = url.replace(/^@/, '');
-    if (!url.startsWith('strava.com')) {
-      return `https://strava.com/clubs/${url}`;
+    url = url.replace(/^@/, ''); // Remove @ symbol if present
+    if (!url.startsWith('strava.com') && !url.startsWith('www.strava.com')) {
+      return `https://www.strava.com/clubs/${url}`;
     }
-    return `https://${url}`;
+    return url.startsWith('www.strava.com') ? `https://${url}` : `https://www.${url}`;
   }
+  
   if (type === 'website' || type === 'other') {
+    // Only add https:// if it looks like a domain (contains a dot)
     if (url.includes('.')) {
       return `https://${url}`;
     }
   }
+  
+  // If we can't determine what to do with it, return as-is
   return url;
 }
 
@@ -82,6 +92,7 @@ export default function AddClubPage() {
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -89,6 +100,20 @@ export default function AddClubPage() {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleUrlBlur = (name: string, value: string) => {
+    // Only normalize on blur to avoid disrupting user typing
+    if (['websiteUrl', 'instagramUrl', 'stravaUrl', 'additionalUrl'].includes(name) && value.trim()) {
+      const urlType = name === 'websiteUrl' ? 'website' : 
+                      name === 'instagramUrl' ? 'instagram' : 
+                      name === 'stravaUrl' ? 'strava' : 'other';
+      const normalizedValue = normalizeUrl(value, urlType);
+      setFormData(prev => ({
+        ...prev,
+        [name]: normalizedValue
+      }));
+    }
   };
 
   const handleRunSessionChange = (index: number, field: keyof RunSession, value: string) => {
@@ -150,17 +175,13 @@ export default function AddClubPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Normalize URLs before submit
-    const normalizedFormData = {
-      ...formData,
-      websiteUrl: normalizeUrl(formData.websiteUrl, 'website'),
-      instagramUrl: normalizeUrl(formData.instagramUrl, 'instagram'),
-      stravaUrl: normalizeUrl(formData.stravaUrl, 'strava'),
-      additionalUrl: normalizeUrl(formData.additionalUrl, 'other'),
-    };
+    // Prevent double submission
+    if (isSubmitting) {
+      return;
+    }
     
     // Validate that at least one run session has required fields
-    const validRunSessions = normalizedFormData.runSessions.filter(session => 
+    const validRunSessions = formData.runSessions.filter(session => 
       session.day && session.time && session.location && session.run_type
     );
     
@@ -169,6 +190,8 @@ export default function AddClubPage() {
       return;
     }
     
+    setIsSubmitting(true);
+    
     try {
       const response = await fetch('/api/submit-club', {
         method: 'POST',
@@ -176,21 +199,53 @@ export default function AddClubPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...normalizedFormData,
+          ...formData,
           runSessions: validRunSessions
         }),
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        setIsSubmitted(true);
-      } else {
-        alert(result.error || 'Failed to submit club');
+      if (!response.ok) {
+        let errorMessage = `Submission failed with status ${response.status}`;
+        try {
+          const errorResult = await response.json();
+          console.error('Submission failed with status:', response.status);
+          if (errorResult && typeof errorResult === 'object') {
+            console.error('Error details:', errorResult.error || 'Unknown error');
+            if (errorResult.details) {
+              console.error('Additional details:', errorResult.details);
+            }
+          }
+          errorMessage = errorResult.error || errorMessage;
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError instanceof Error ? parseError.message : 'Unknown parse error');
+          console.error('Raw response status:', response.status, response.statusText);
+        }
+        alert(errorMessage);
+        return;
       }
+
+      try {
+        const result = await response.json();
+        console.log('Submission successful with status:', response.status);
+        if (result && typeof result === 'object') {
+          console.log('Success message:', result.message || 'Club submitted successfully');
+          if (result.clubId) {
+            console.log('Club ID:', result.clubId);
+          }
+        }
+        setIsSubmitted(true);
+      } catch (parseError) {
+        console.error('Failed to parse success response:', parseError instanceof Error ? parseError.message : 'Unknown parse error');
+        // If we can't parse the response but the status was ok, assume success
+        console.log('Submission likely successful but response parsing failed');
+        setIsSubmitted(true);
+      }
+      
     } catch (error) {
-      console.error('Error submitting club:', error);
-      alert('Failed to submit club. Please try again.');
+      console.error('Network or other error submitting club:', error);
+      alert('Failed to submit club. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -307,10 +362,11 @@ export default function AddClubPage() {
                   Website URL
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   name="websiteUrl"
                   value={formData.websiteUrl}
                   onChange={handleInputChange}
+                  onBlur={(e) => handleUrlBlur(e.target.name, e.target.value)}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
                   
                   placeholder="yourrunclub.com or handle or full URL"
@@ -322,10 +378,11 @@ export default function AddClubPage() {
                   Instagram URL
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   name="instagramUrl"
                   value={formData.instagramUrl}
                   onChange={handleInputChange}
+                  onBlur={(e) => handleUrlBlur(e.target.name, e.target.value)}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
                   
                   placeholder="@yourrunclub, handle, or full URL"
@@ -337,10 +394,11 @@ export default function AddClubPage() {
                   Strava URL
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   name="stravaUrl"
                   value={formData.stravaUrl}
                   onChange={handleInputChange}
+                  onBlur={(e) => handleUrlBlur(e.target.name, e.target.value)}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
                   
                   placeholder="strava.com/yourclub, handle, or full URL"
@@ -352,10 +410,11 @@ export default function AddClubPage() {
                   Additional URL
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   name="additionalUrl"
                   value={formData.additionalUrl}
                   onChange={handleInputChange}
+                  onBlur={(e) => handleUrlBlur(e.target.name, e.target.value)}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
                   
                   placeholder="example.com or handle or full URL"
@@ -829,11 +888,16 @@ export default function AddClubPage() {
 
           {/* Submit Button */}
           <div className="text-center">
-            <Button variant="secondary" size="lg" onClick={() => {
-              const form = document.querySelector('form') as HTMLFormElement;
-              if (form) form.requestSubmit();
-            }}>
-              SUBMIT CLUB
+            <Button 
+              variant="secondary" 
+              size="lg" 
+              onClick={() => {
+                const form = document.querySelector('form') as HTMLFormElement;
+                if (form) form.requestSubmit();
+              }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'SUBMITTING...' : 'SUBMIT CLUB'}
             </Button>
             <p className="text-gray-600 text-sm mt-4">
               * Required fields. Your submission will be reviewed before being published.

@@ -14,9 +14,10 @@ async function generateUniqueSlug(clubName: string): Promise<string> {
 
   let slug = baseSlug;
   let counter = 1;
+  const maxAttempts = 10;
 
   // Check if slug exists, if so, add a number
-  while (true) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const { data, error } = await supabase
       .from('run_clubs')
       .select('id')
@@ -25,20 +26,22 @@ async function generateUniqueSlug(clubName: string): Promise<string> {
 
     if (error && error.code === 'PGRST116') {
       // No rows found, slug is unique
-      break;
+      return slug;
     }
 
     if (data) {
       // Slug exists, try with a number
       counter++;
       slug = `${baseSlug}-${counter}`;
-    } else {
-      // Some other error, but let's continue
-      break;
+    } else if (error) {
+      // Some other error, log it but continue
+      console.warn('Slug check error:', error);
+      return slug;
     }
   }
 
-  return slug;
+  // If we've exhausted attempts, add a timestamp
+  return `${baseSlug}-${Date.now()}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -62,9 +65,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'At least one complete run session is required (day, time, location, and run type)' }, { status: 400 });
     }
 
-    // Generate unique slug
-    const slug = await generateUniqueSlug(formData.clubName);
-
     // Upload club photo if exists (placeholder for now)
     const clubPhotoUrl = null;
     if (formData.clubPhoto) {
@@ -72,42 +72,66 @@ export async function POST(request: NextRequest) {
       // clubPhotoUrl = await uploadClubPhoto(formData.clubPhoto);
     }
     
-    // Insert club into database
-    const { data: club, error } = await supabase
-      .from('run_clubs')
-      .insert({
-        club_name: formData.clubName,
-        slug: slug,
-        contact_name: formData.contactName,
-        short_bio: formData.shortBio,
-        website_url: formData.websiteUrl || null,
-        instagram_url: formData.instagramUrl || null,
-        strava_url: formData.stravaUrl || null,
-        additional_url: formData.additionalUrl || null,
-        suburb_or_town: formData.suburbOrTown,
-        postcode: formData.postcode,
-        state: formData.state,
-        latitude: parseFloat(formData.latitude),
-        longitude: parseFloat(formData.longitude),
-        run_details: [], // Keep empty array for backward compatibility
-        run_sessions: validRunSessions,
-        run_days: formData.runDays,
-        club_type: formData.clubType,
-        is_paid: formData.isPaid,
-        extracurriculars: formData.extracurriculars,
-        terrain: formData.terrain,
-        club_photo: clubPhotoUrl,
-        leader_name: formData.leaderName,
-        contact_mobile: formData.contactMobile || null,
-        contact_email: formData.contactEmail,
-        status: 'pending'
-      })
-      .select()
-      .single();
+    // Insert club into database with retry logic for slug conflicts
+    let club;
+    let insertAttempts = 0;
+    const maxInsertAttempts = 3;
+    
+    while (insertAttempts < maxInsertAttempts) {
+      // Generate/regenerate unique slug for each attempt
+      const slug = await generateUniqueSlug(formData.clubName);
+      
+      const { data, error } = await supabase
+        .from('run_clubs')
+        .insert({
+          club_name: formData.clubName,
+          slug: slug,
+          contact_name: formData.contactName,
+          short_bio: formData.shortBio,
+          website_url: formData.websiteUrl || null,
+          instagram_url: formData.instagramUrl || null,
+          strava_url: formData.stravaUrl || null,
+          additional_url: formData.additionalUrl || null,
+          suburb_or_town: formData.suburbOrTown,
+          postcode: formData.postcode,
+          state: formData.state,
+          latitude: parseFloat(formData.latitude),
+          longitude: parseFloat(formData.longitude),
+          run_details: [], // Keep empty array for backward compatibility
+          run_sessions: validRunSessions,
+          run_days: formData.runDays,
+          club_type: formData.clubType,
+          is_paid: formData.isPaid,
+          extracurriculars: formData.extracurriculars,
+          terrain: formData.terrain,
+          club_photo: clubPhotoUrl,
+          leader_name: formData.leaderName,
+          contact_mobile: formData.contactMobile || null,
+          contact_email: formData.contactEmail,
+          status: 'pending'
+        })
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Database error:', error);
-      return NextResponse.json({ error: 'Failed to submit club', details: error.message }, { status: 500 });
+      if (error) {
+        // Check if it's a slug uniqueness constraint violation
+        if (error.message.includes('run_clubs_slug_unique') && insertAttempts < maxInsertAttempts - 1) {
+          console.warn(`Slug conflict on attempt ${insertAttempts + 1}, retrying...`);
+          insertAttempts++;
+          continue;
+        }
+        
+        console.error('Database error:', error);
+        return NextResponse.json({ error: 'Failed to submit club', details: error.message }, { status: 500 });
+      }
+      
+      club = data;
+      break;
+    }
+    
+    if (!club) {
+      console.error('Failed to insert club after all attempts');
+      return NextResponse.json({ error: 'Failed to submit club after multiple attempts' }, { status: 500 });
     }
 
     // Send approval email to admin
