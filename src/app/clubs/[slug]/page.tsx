@@ -1,11 +1,10 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
+
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import HeroImage from '@/components/HeroImage';
 import { getClubBySlug } from '@/lib/supabase';
 import { 
-  ArrowLeft,
   MapPin,
   Instagram,
   Globe

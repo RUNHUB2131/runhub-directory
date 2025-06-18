@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { Resend } from 'resend';
-import { ClubApprovedEmail } from '@/components/emails/ClubApprovedEmail';
+
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    const { token } = await params;
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action'); // 'approve' or 'reject'
     const reason = searchParams.get('reason') || '';
@@ -24,7 +25,7 @@ export async function GET(
     const { data: club, error: fetchError } = await supabase
       .from('run_clubs')
       .select('*')
-      .eq('approval_token', params.token)
+      .eq('approval_token', token)
       .eq('status', 'pending')
       .single();
 
@@ -35,7 +36,12 @@ export async function GET(
     }
 
     // Update club status
-    const updateData: any = {
+    const updateData: {
+      status: string;
+      approved_at: string;
+      approved_by: string;
+      rejection_reason?: string;
+    } = {
       status: action === 'approve' ? 'approved' : 'rejected',
       approved_at: new Date().toISOString(),
       approved_by: 'admin', // You can enhance this with actual admin user
@@ -106,7 +112,7 @@ export async function GET(
   }
 }
 
-function getSuccessHtml(club: any, action: string) {
+function getSuccessHtml(club: { id: string; club_name: string; contact_name: string; suburb_or_town: string; state: string }, action: string) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   
   return `

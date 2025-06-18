@@ -3,14 +3,15 @@ import { supabase } from '@/lib/supabase';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    const { token } = await params;
     // Find and verify the signup
     const { data: signup, error } = await supabase
       .from('newsletter_signups')
       .select('*')
-      .eq('verification_token', params.token)
+      .eq('verification_token', token)
       .eq('is_verified', false)
       .single();
 
@@ -47,7 +48,7 @@ export async function GET(
   }
 }
 
-function getSuccessHtml(signup: any) {
+function getSuccessHtml(signup: { first_name?: string }) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
   
   return `

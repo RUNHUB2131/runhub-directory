@@ -44,7 +44,7 @@ export const ClubApprovedEmail: React.FC<ClubApprovedEmailProps> = ({
     </div>
 
     <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '5px', margin: '20px 0' }}>
-      <h3 style={{ marginTop: '0' }}>What's Next?</h3>
+      <h3 style={{ marginTop: '0' }}>What&apos;s Next?</h3>
       <ul style={{ paddingLeft: '20px' }}>
         <li>Share your club page with your running community</li>
         <li>Update your social media profiles with the link</li>

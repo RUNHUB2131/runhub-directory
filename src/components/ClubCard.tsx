@@ -91,7 +91,7 @@ export default function ClubCard({ club, variant = 'dark' }: ClubCardProps) {
   const meetingDays = getMeetingDays();
   const terrainTags = getTerrainTags();
   const daysOfWeek = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
-  const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  // const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   
   // Create a set of active day abbreviations for easy lookup
   const activeDayAbbrs = new Set(meetingDays.map(day => getDayAbbreviation(day)));

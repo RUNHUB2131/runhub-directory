@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const email = formData.email.toLowerCase();
 
     // Insert into database
-    const { data: signup, error } = await supabase
+    const { error } = await supabase
       .from('newsletter_signups')
       .insert({
         email: email,

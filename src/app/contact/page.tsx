@@ -85,7 +85,7 @@ export default function ContactPage() {
           </h1>
           
           <p className="text-lg mb-8" style={{ color: '#021fdf' }}>
-            We'd love to hear from you!<br />
+            We&apos;d love to hear from you!<br />
             Complete the form below and our team will get back to you shortly.
           </p>
         </div>

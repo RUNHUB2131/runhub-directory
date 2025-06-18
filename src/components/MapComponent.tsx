@@ -93,7 +93,7 @@ export default function MapComponent({
         // Style data loaded
       });
 
-      map.current.on('sourcedata', (e) => {
+      map.current.on('sourcedata', () => {
         // Source data loaded
       });
 
@@ -213,7 +213,7 @@ export default function MapComponent({
         el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
       });
 
-      el.addEventListener('click', (e) => {
+      el.addEventListener('click', () => {
         // Get the pixel coordinates of the marker on screen
         const rect = mapContainer.current!.getBoundingClientRect();
         const markerRect = el.getBoundingClientRect();

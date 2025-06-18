@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, Search, Filter } from 'lucide-react';
+import { Menu, X, Filter } from 'lucide-react';
 import Button from './Button';
 import FilterDialog from './FilterDialog';
 
@@ -31,14 +31,14 @@ const DEFAULT_FILTERS: FilterState = {
   isPaid: []
 };
 
-const FILTER_OPTIONS = {
-  states: ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'],
-  meetingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
-  clubType: ['everyone', 'women-only', 'men-only'],
-  terrain: ['grass', 'hills', 'soft-sand', 'track', 'trail-running', 'urban'],
-  extracurriculars: ['coaching', 'parkrun', 'post-run-coffee', 'post-run-drinks', 'post-run-meals', 'post-run-swim', 'social-events'],
-  isPaid: ['free', 'paid']
-};
+// const FILTER_OPTIONS = {
+//   states: ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'],
+//   meetingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+//   clubType: ['everyone', 'women-only', 'men-only'],
+//   terrain: ['grass', 'hills', 'soft-sand', 'track', 'trail-running', 'urban'],
+//   extracurriculars: ['coaching', 'parkrun', 'post-run-coffee', 'post-run-drinks', 'post-run-meals', 'post-run-swim', 'social-events'],
+//   isPaid: ['free', 'paid']
+// };
 
 export default function SearchNavigation({ 
   searchQuery, 

@@ -34,7 +34,7 @@ export default function NewsletterTestPage() {
           <ul className="text-yellow-700 text-sm space-y-1">
             <li>• Try real emails (avoid test*, temp*, disposable)</li>
             <li>• Wait at least 3 seconds before submitting</li>
-            <li>• Don't fill any hidden fields</li>
+            <li>• Don&apos;t fill any hidden fields</li>
             <li>• Check browser console for errors</li>
           </ul>
         </div>

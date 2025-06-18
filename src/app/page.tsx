@@ -8,7 +8,7 @@ import ClubCard from '@/components/ClubCard';
 import Footer from '@/components/Footer';
 import { getAllClubs } from '@/lib/supabase';
 import { RunClub } from '@/types';
-import { Search, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');

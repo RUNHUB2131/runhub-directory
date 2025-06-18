@@ -99,7 +99,7 @@ export default function SearchClubCard({ club, isHighlighted = false, onClick }:
   // Use club photo if available, otherwise fallback to placeholder
   const clubImage = club.club_photo || `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=160&fit=crop&crop=center`;
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = () => {
     if (onClick) {
       onClick();
     }

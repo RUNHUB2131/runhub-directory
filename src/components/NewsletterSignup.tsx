@@ -229,7 +229,7 @@ export default function NewsletterSignup({
               value={formData.firstName}
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-blue-500 focus:outline-none"
-              style={{ '--tw-ring-color': '#021fdf' } as any}
+              
               placeholder="Your first name"
               disabled={isSubmitting}
             />
@@ -246,7 +246,7 @@ export default function NewsletterSignup({
               onChange={handleChange}
               required
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-blue-500 focus:outline-none"
-              style={{ '--tw-ring-color': '#021fdf' } as any}
+              
               placeholder="your@email.com"
               disabled={isSubmitting}
             />

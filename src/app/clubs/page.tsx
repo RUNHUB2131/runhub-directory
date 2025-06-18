@@ -193,7 +193,7 @@ export default function SearchPage() {
               </h2>
               {searchQuery && (
                 <p className="text-sm text-gray-600 mt-1">
-                  Showing results for "{searchQuery}"
+                  Showing results for &quot;{searchQuery}&quot;
                 </p>
               )}
             </div>

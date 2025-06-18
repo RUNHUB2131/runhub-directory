@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Generate a unique slug for a club name
 async function generateUniqueSlug(clubName: string): Promise<string> {
   // Convert to lowercase and replace spaces/special chars with hyphens
-  let baseSlug = clubName
+  const baseSlug = clubName
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate that at least one valid run session exists
-    const validRunSessions = formData.runSessions?.filter((session: any) => 
+    const validRunSessions = formData.runSessions?.filter((session: { day?: string; time?: string; location?: string; run_type?: string }) => 
       session.day && session.time && session.location && session.run_type
     ) || [];
     
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     const slug = await generateUniqueSlug(formData.clubName);
 
     // Upload club photo if exists (placeholder for now)
-    let clubPhotoUrl = null;
+    const clubPhotoUrl = null;
     if (formData.clubPhoto) {
       // TODO: Implement file upload to Supabase Storage
       // clubPhotoUrl = await uploadClubPhoto(formData.clubPhoto);
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
             ${validRunSessions.length > 0 ? `
               <div style="margin: 20px 0;">
                 <h3>Run Sessions:</h3>
-                ${validRunSessions.map((session: any, index: number) => `
+                ${validRunSessions.map((session: { day: string; time: string; location: string; run_type: string; distance?: string; description?: string }, index: number) => `
                   <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;">
                     <h4 style="margin: 0 0 10px 0; color: #333;">Session ${index + 1}</h4>
                     <p style="margin: 5px 0;"><strong>Day:</strong> ${session.day.charAt(0).toUpperCase() + session.day.slice(1)}</p>

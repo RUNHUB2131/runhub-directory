@@ -15,12 +15,12 @@ export default function AboutPage() {
           </h1>
           
           <p className="text-lg text-gray-900 font-medium mb-6">
-            RUNHUB's mission is to get Australia running.
+            RUNHUB&apos;s mission is to get Australia running.
           </p>
           
           <p className="text-base text-gray-700 mb-4 leading-relaxed">
             Join us as we build the home of Australian runners, giving people the tools they need to start 
-            running and keep at it. Starting with Australia's biggest and most comprehensive run club 
+            running and keep at it. Starting with Australia&apos;s biggest and most comprehensive run club 
             directory - so everyone can find the perfect run club.
           </p>
           

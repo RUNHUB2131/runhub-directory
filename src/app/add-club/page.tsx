@@ -206,7 +206,7 @@ export default function AddClubPage() {
             </h1>
             <p className="text-gray-600 text-lg mb-8">
               Your submission has been received and will be reviewed by our team.
-              We'll get back to you within 2-3 business days.
+              We&apos;ll get back to you within 2-3 business days.
             </p>
             <button
               onClick={() => setIsSubmitted(false)}
@@ -256,7 +256,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="Enter your club name"
                 />
               </div>
@@ -272,7 +272,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="Your name"
                 />
               </div>
@@ -288,7 +288,7 @@ export default function AddClubPage() {
                   required
                   rows={4}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="Tell us about your club, running style, and what makes it special"
                 />
               </div>
@@ -312,7 +312,7 @@ export default function AddClubPage() {
                   value={formData.websiteUrl}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="yourrunclub.com or handle or full URL"
                 />
               </div>
@@ -327,7 +327,7 @@ export default function AddClubPage() {
                   value={formData.instagramUrl}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="@yourrunclub, handle, or full URL"
                 />
               </div>
@@ -342,7 +342,7 @@ export default function AddClubPage() {
                   value={formData.stravaUrl}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="strava.com/yourclub, handle, or full URL"
                 />
               </div>
@@ -357,7 +357,7 @@ export default function AddClubPage() {
                   value={formData.additionalUrl}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="example.com or handle or full URL"
                 />
               </div>
@@ -382,7 +382,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="e.g., Bondi Beach"
                 />
               </div>
@@ -398,7 +398,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="e.g., 2026"
                 />
               </div>
@@ -413,7 +413,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                 >
                   <option value="">Select State</option>
                   <option value="NSW">NSW</option>
@@ -441,7 +441,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="-33.8915"
                 />
               </div>
@@ -458,7 +458,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="151.2767"
                 />
               </div>
@@ -503,7 +503,7 @@ export default function AddClubPage() {
                         value={session.day}
                         onChange={(e) => handleRunSessionChange(index, 'day', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                        style={{ '--tw-ring-color': '#021fdf' } as any}
+                        
                         required={index === 0}
                       >
                         <option value="">Select Day</option>
@@ -526,7 +526,7 @@ export default function AddClubPage() {
                         value={session.time}
                         onChange={(e) => handleRunSessionChange(index, 'time', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                        style={{ '--tw-ring-color': '#021fdf' } as any}
+                        
                         required={index === 0}
                       />
                     </div>
@@ -540,7 +540,7 @@ export default function AddClubPage() {
                         value={session.distance}
                         onChange={(e) => handleRunSessionChange(index, 'distance', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                        style={{ '--tw-ring-color': '#021fdf' } as any}
+                        
                         placeholder="e.g., 5km, 10-15km, Various"
                       />
                     </div>
@@ -554,7 +554,7 @@ export default function AddClubPage() {
                         value={session.location}
                         onChange={(e) => handleRunSessionChange(index, 'location', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                        style={{ '--tw-ring-color': '#021fdf' } as any}
+                        
                         placeholder="e.g., Main Park Entrance, Corner of Smith St & Brown Ave"
                         required={index === 0}
                       />
@@ -568,7 +568,7 @@ export default function AddClubPage() {
                         value={session.run_type}
                         onChange={(e) => handleRunSessionChange(index, 'run_type', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                        style={{ '--tw-ring-color': '#021fdf' } as any}
+                        
                         required={index === 0}
                       >
                         <option value="">Select Run Type</option>
@@ -594,7 +594,7 @@ export default function AddClubPage() {
                         onChange={(e) => handleRunSessionChange(index, 'description', e.target.value)}
                         rows={2}
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                        style={{ '--tw-ring-color': '#021fdf' } as any}
+                        
                         placeholder="Any additional details about this run session (pace, level, special notes)"
                       />
                     </div>
@@ -634,7 +634,7 @@ export default function AddClubPage() {
                         checked={formData.runDays.includes(day.toLowerCase())}
                         onChange={() => handleArrayChange('runDays', day.toLowerCase())}
                         className="rounded border-gray-300 focus:ring-2"
-                        style={{ '--tw-ring-color': '#021fdf', accentColor: '#021fdf' } as any}
+                        style={{ accentColor: '#021fdf' }}
                       />
                       <span className="text-sm text-gray-700">{day.slice(0, 3)}</span>
                     </label>
@@ -653,7 +653,7 @@ export default function AddClubPage() {
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                    style={{ '--tw-ring-color': '#021fdf' } as any}
+                    
                   >
                     <option value="everyone">Everyone</option>
                     <option value="women-only">Women Only</option>
@@ -671,7 +671,7 @@ export default function AddClubPage() {
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                    style={{ '--tw-ring-color': '#021fdf' } as any}
+                    
                   >
                     <option value="free">Free</option>
                     <option value="paid">Paid</option>
@@ -708,7 +708,7 @@ export default function AddClubPage() {
                         checked={formData.extracurriculars.includes(activity)}
                         onChange={() => handleArrayChange('extracurriculars', activity)}
                         className="rounded border-gray-300 focus:ring-2"
-                        style={{ '--tw-ring-color': '#021fdf', accentColor: '#021fdf' } as any}
+                        style={{ accentColor: '#021fdf' }}
                       />
                       <span className="text-sm text-gray-700 capitalize">{activity}</span>
                     </label>
@@ -735,7 +735,7 @@ export default function AddClubPage() {
                         checked={formData.terrain.includes(terrain)}
                         onChange={() => handleArrayChange('terrain', terrain)}
                         className="rounded border-gray-300 focus:ring-2"
-                        style={{ '--tw-ring-color': '#021fdf', accentColor: '#021fdf' } as any}
+                        style={{ accentColor: '#021fdf' }}
                       />
                       <span className="text-sm text-gray-700 capitalize">{terrain}</span>
                     </label>
@@ -760,7 +760,7 @@ export default function AddClubPage() {
                 accept="image/*"
                 onChange={handleFileChange}
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                style={{ '--tw-ring-color': '#021fdf' } as any}
+                
               />
               <p className="text-xs text-gray-500 mt-1">
                 Upload a photo that represents your club (JPG, PNG, or WebP, max 500KB)
@@ -789,7 +789,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="Leader's name"
                 />
               </div>
@@ -804,7 +804,7 @@ export default function AddClubPage() {
                   value={formData.contactMobile}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="0412 345 678"
                 />
               </div>
@@ -820,7 +820,7 @@ export default function AddClubPage() {
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:border-[#021fdf] focus:outline-none"
-                  style={{ '--tw-ring-color': '#021fdf' } as any}
+                  
                   placeholder="contact@yourrunclub.com"
                 />
               </div>

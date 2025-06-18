@@ -34,7 +34,7 @@ export default function Footer() {
       } else {
         setMessage(result.error || 'Failed to subscribe');
       }
-    } catch (error) {
+    } catch {
       setMessage('Failed to subscribe. Please try again.');
     } finally {
       setIsSubmitting(false);
