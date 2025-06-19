@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "migrate": "node migrate-webflow-data.js",
-    "verify": "node verify-migration.js"
+    "verify": "node verify-migration.js",
+    "generate-sitemap": "node scripts/generate-sitemap.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
