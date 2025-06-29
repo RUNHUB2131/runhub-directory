@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { FilterProvider } from "@/contexts/FilterContext";
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
         <FilterProvider>
           {children}
         </FilterProvider>
+        <Analytics />
       </body>
     </html>
   );
