@@ -161,7 +161,7 @@ export default function AddClubPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.size <= 500000) { // 500KB limit
+    if (file && file.size <= 500000) { // 500KB limit for better website performance
       setFormData(prev => ({
         ...prev,
         clubPhoto: file
@@ -193,15 +193,42 @@ export default function AddClubPage() {
     setIsSubmitting(true);
     
     try {
+      // Create FormData to handle file upload
+      const formDataToSubmit = new FormData();
+      
+      // Add all form fields
+      formDataToSubmit.append('clubName', formData.clubName);
+      formDataToSubmit.append('contactName', formData.contactName);
+      formDataToSubmit.append('shortBio', formData.shortBio);
+      formDataToSubmit.append('websiteUrl', formData.websiteUrl);
+      formDataToSubmit.append('instagramUrl', formData.instagramUrl);
+      formDataToSubmit.append('stravaUrl', formData.stravaUrl);
+      formDataToSubmit.append('additionalUrl', formData.additionalUrl);
+      formDataToSubmit.append('suburbOrTown', formData.suburbOrTown);
+      formDataToSubmit.append('postcode', formData.postcode);
+      formDataToSubmit.append('state', formData.state);
+      formDataToSubmit.append('latitude', formData.latitude);
+      formDataToSubmit.append('longitude', formData.longitude);
+      formDataToSubmit.append('clubType', formData.clubType);
+      formDataToSubmit.append('isPaid', formData.isPaid);
+      formDataToSubmit.append('leaderName', formData.leaderName);
+      formDataToSubmit.append('contactMobile', formData.contactMobile);
+      formDataToSubmit.append('contactEmail', formData.contactEmail);
+      
+      // Add arrays as JSON strings
+      formDataToSubmit.append('runSessions', JSON.stringify(validRunSessions));
+      formDataToSubmit.append('runDays', JSON.stringify(formData.runDays));
+      formDataToSubmit.append('extracurriculars', JSON.stringify(formData.extracurriculars));
+      formDataToSubmit.append('terrain', JSON.stringify(formData.terrain));
+      
+      // Add file if exists
+      if (formData.clubPhoto) {
+        formDataToSubmit.append('clubPhoto', formData.clubPhoto);
+      }
+      
       const response = await fetch('/api/submit-club', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          runSessions: validRunSessions
-        }),
+        body: formDataToSubmit,
       });
 
       if (!response.ok) {

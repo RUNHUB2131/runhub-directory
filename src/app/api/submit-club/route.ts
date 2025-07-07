@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+
+// Create service role client for storage operations
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -44,20 +50,82 @@ async function generateUniqueSlug(clubName: string): Promise<string> {
   return `${baseSlug}-${Date.now()}`;
 }
 
+// Helper function to upload club photo to Supabase Storage
+async function uploadClubPhoto(file: File): Promise<string | null> {
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    
+    // Convert file to buffer
+    const buffer = await file.arrayBuffer();
+    
+    const { data, error } = await supabaseAdmin.storage
+      .from('club-photos')
+      .upload(fileName, buffer, {
+        contentType: file.type,
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      console.error('Error uploading file:', error);
+      return null;
+    }
+
+    // Get public URL
+    const { data: publicUrlData } = supabaseAdmin.storage
+      .from('club-photos')
+      .getPublicUrl(fileName);
+
+    return publicUrlData.publicUrl;
+  } catch (error) {
+    console.error('Error in uploadClubPhoto:', error);
+    return null;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.json();
+    const formData = await request.formData();
+    
+    // Extract form fields
+    const clubName = formData.get('clubName') as string;
+    const contactName = formData.get('contactName') as string;
+    const shortBio = formData.get('shortBio') as string;
+    const websiteUrl = formData.get('websiteUrl') as string;
+    const instagramUrl = formData.get('instagramUrl') as string;
+    const stravaUrl = formData.get('stravaUrl') as string;
+    const additionalUrl = formData.get('additionalUrl') as string;
+    const suburbOrTown = formData.get('suburbOrTown') as string;
+    const postcode = formData.get('postcode') as string;
+    const state = formData.get('state') as string;
+    const latitude = formData.get('latitude') as string;
+    const longitude = formData.get('longitude') as string;
+    const clubType = formData.get('clubType') as string;
+    const isPaid = formData.get('isPaid') as string;
+    const leaderName = formData.get('leaderName') as string;
+    const contactMobile = formData.get('contactMobile') as string;
+    const contactEmail = formData.get('contactEmail') as string;
+    
+    // Parse JSON arrays
+    const runSessions = JSON.parse(formData.get('runSessions') as string || '[]');
+    const runDays = JSON.parse(formData.get('runDays') as string || '[]');
+    const extracurriculars = JSON.parse(formData.get('extracurriculars') as string || '[]');
+    const terrain = JSON.parse(formData.get('terrain') as string || '[]');
+    
+    // Get file
+    const clubPhotoFile = formData.get('clubPhoto') as File | null;
     
     // Validate required fields
-    if (!formData.clubName || !formData.contactName || !formData.shortBio || 
-        !formData.suburbOrTown || !formData.postcode || !formData.state ||
-        !formData.latitude || !formData.longitude || !formData.contactEmail ||
-        !formData.leaderName) {
+    if (!clubName || !contactName || !shortBio || 
+        !suburbOrTown || !postcode || !state ||
+        !latitude || !longitude || !contactEmail ||
+        !leaderName) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     // Validate that at least one valid run session exists
-    const validRunSessions = formData.runSessions?.filter((session: { day?: string; time?: string; location?: string; run_type?: string }) => 
+    const validRunSessions = runSessions?.filter((session: { day?: string; time?: string; location?: string; run_type?: string }) => 
       session.day && session.time && session.location && session.run_type
     ) || [];
     
@@ -65,11 +133,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'At least one complete run session is required (day, time, location, and run type)' }, { status: 400 });
     }
 
-    // Upload club photo if exists (placeholder for now)
-    const clubPhotoUrl = null;
-    if (formData.clubPhoto) {
-      // TODO: Implement file upload to Supabase Storage
-      // clubPhotoUrl = await uploadClubPhoto(formData.clubPhoto);
+    // Upload club photo if exists
+    let clubPhotoUrl = null;
+    if (clubPhotoFile) {
+      clubPhotoUrl = await uploadClubPhoto(clubPhotoFile);
     }
     
     // Insert club into database with retry logic for slug conflicts
@@ -79,35 +146,35 @@ export async function POST(request: NextRequest) {
     
     while (insertAttempts < maxInsertAttempts) {
       // Generate/regenerate unique slug for each attempt
-      const slug = await generateUniqueSlug(formData.clubName);
+      const slug = await generateUniqueSlug(clubName);
       
       const { data, error } = await supabase
         .from('run_clubs')
         .insert({
-          club_name: formData.clubName,
+          club_name: clubName,
           slug: slug,
-          contact_name: formData.contactName,
-          short_bio: formData.shortBio,
-          website_url: formData.websiteUrl || null,
-          instagram_url: formData.instagramUrl || null,
-          strava_url: formData.stravaUrl || null,
-          additional_url: formData.additionalUrl || null,
-          suburb_or_town: formData.suburbOrTown,
-          postcode: formData.postcode,
-          state: formData.state,
-          latitude: parseFloat(formData.latitude),
-          longitude: parseFloat(formData.longitude),
+          contact_name: contactName,
+          short_bio: shortBio,
+          website_url: websiteUrl || null,
+          instagram_url: instagramUrl || null,
+          strava_url: stravaUrl || null,
+          additional_url: additionalUrl || null,
+          suburb_or_town: suburbOrTown,
+          postcode: postcode,
+          state: state,
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude),
           run_details: [], // Keep empty array for backward compatibility
           run_sessions: validRunSessions,
-          run_days: formData.runDays,
-          club_type: formData.clubType,
-          is_paid: formData.isPaid,
-          extracurriculars: formData.extracurriculars,
-          terrain: formData.terrain,
+          run_days: runDays,
+          club_type: clubType,
+          is_paid: isPaid,
+          extracurriculars: extracurriculars,
+          terrain: terrain,
           club_photo: clubPhotoUrl,
-          leader_name: formData.leaderName,
-          contact_mobile: formData.contactMobile || null,
-          contact_email: formData.contactEmail,
+          leader_name: leaderName,
+          contact_mobile: contactMobile || null,
+          contact_email: contactEmail,
           status: 'pending'
         })
         .select()
@@ -148,7 +215,7 @@ export async function POST(request: NextRequest) {
       const emailResult = await resend.emails.send({
         from: 'RunHub Directory <noreply@mail.runhub.co>',
         to: ['hello@runhub.co'],
-        subject: `New Club Submission: ${formData.clubName}`,
+        subject: `New Club Submission: ${clubName}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h1 style="color: #021fdf; border-bottom: 2px solid #021fdf; padding-bottom: 10px;">
@@ -156,20 +223,20 @@ export async function POST(request: NextRequest) {
             </h1>
             
             <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h2 style="color: #333; margin-top: 0;">${formData.clubName}</h2>
-              <p><strong>Contact:</strong> ${formData.contactName}</p>
-              <p><strong>Leader:</strong> ${formData.leaderName}</p>
-              <p><strong>Email:</strong> ${formData.contactEmail}</p>
-              ${formData.contactMobile ? `<p><strong>Mobile:</strong> ${formData.contactMobile}</p>` : ''}
-              <p><strong>Location:</strong> ${formData.suburbOrTown}, ${formData.state} ${formData.postcode}</p>
-              <p><strong>Club Type:</strong> ${formData.clubType}</p>
-              <p><strong>Cost:</strong> ${formData.isPaid}</p>
+              <h2 style="color: #333; margin-top: 0;">${clubName}</h2>
+              <p><strong>Contact:</strong> ${contactName}</p>
+              <p><strong>Leader:</strong> ${leaderName}</p>
+              <p><strong>Email:</strong> ${contactEmail}</p>
+              ${contactMobile ? `<p><strong>Mobile:</strong> ${contactMobile}</p>` : ''}
+              <p><strong>Location:</strong> ${suburbOrTown}, ${state} ${postcode}</p>
+              <p><strong>Club Type:</strong> ${clubType}</p>
+              <p><strong>Cost:</strong> ${isPaid}</p>
             </div>
 
             <div style="margin: 20px 0;">
               <h3>Short Bio:</h3>
               <div style="background-color: #f1f5f9; padding: 15px; border-radius: 5px;">
-                ${formData.shortBio}
+                ${shortBio}
               </div>
             </div>
 
