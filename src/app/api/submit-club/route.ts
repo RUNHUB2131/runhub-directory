@@ -59,7 +59,7 @@ async function uploadClubPhoto(file: File): Promise<string | null> {
     // Convert file to buffer
     const buffer = await file.arrayBuffer();
     
-    const { data, error } = await supabaseAdmin.storage
+    const { error } = await supabaseAdmin.storage
       .from('club-photos')
       .upload(fileName, buffer, {
         contentType: file.type,
