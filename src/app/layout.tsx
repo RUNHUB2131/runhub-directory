@@ -28,7 +28,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/images/RH.png" type="image/png" />
+        <link rel="icon" href="/RH.png" type="image/png" />
+        <link rel="icon" href="/RH.png" sizes="32x32" type="image/png" />
+        <link rel="icon" href="/RH.png" sizes="16x16" type="image/png" />
+        <link rel="apple-touch-icon" href="/RH.png" />
       </head>
       <body className={inter.className}>
         <FilterProvider>
