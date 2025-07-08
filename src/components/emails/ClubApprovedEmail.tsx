@@ -13,13 +13,13 @@ export const ClubApprovedEmail: React.FC<ClubApprovedEmailProps> = ({
 }) => (
   <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
     <h1 style={{ color: '#021fdf', borderBottom: '2px solid #021fdf', paddingBottom: '10px' }}>
-      Welcome to RunHub Directory!
+              Welcome to RUNHUB Directory!
     </h1>
     
     <div style={{ backgroundColor: '#f0f9ff', padding: '20px', borderRadius: '8px', margin: '20px 0' }}>
       <h2 style={{ color: '#22c55e', marginTop: '0' }}>🎉 Club Approved!</h2>
       <p>Hi {contactName},</p>
-      <p>Great news! <strong>{clubName}</strong> has been approved and is now live on RunHub Directory.</p>
+              <p>Great news! <strong>{clubName}</strong> has been approved and is now live on RUNHUB Directory.</p>
     </div>
 
     <div style={{ margin: '20px 0' }}>
@@ -48,7 +48,7 @@ export const ClubApprovedEmail: React.FC<ClubApprovedEmailProps> = ({
       <ul style={{ paddingLeft: '20px' }}>
         <li>Share your club page with your running community</li>
         <li>Update your social media profiles with the link</li>
-        <li>Welcome new members who discover you through RunHub Directory</li>
+                  <li>Welcome new members who discover you through RUNHUB Directory</li>
         <li>Keep your club information up to date by contacting us</li>
       </ul>
     </div>
@@ -61,7 +61,7 @@ export const ClubApprovedEmail: React.FC<ClubApprovedEmailProps> = ({
 
     <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px', marginTop: '30px', fontSize: '12px', color: '#666' }}>
       <p>Need to update your club details? Contact us at admin@runhubdirectory.com.au</p>
-      <p>Thank you for being part of the RunHub Directory community!</p>
+              <p>Thank you for being part of the RUNHUB Directory community!</p>
     </div>
   </div>
 ); 

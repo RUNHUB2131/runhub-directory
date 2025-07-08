@@ -67,18 +67,18 @@ export async function GET(
       try {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
         await resend.emails.send({
-          from: 'RunHub Directory <noreply@runhubdirectory.com.au>',
+          from: 'RUNHUB Directory <noreply@runhubdirectory.com.au>',
           to: [club.contact_email],
-          subject: `Welcome to RunHub Directory - ${club.club_name} Approved!`,
+          subject: `Welcome to RUNHUB Directory - ${club.club_name} Approved!`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #021fdf; border-bottom: 2px solid #021fdf; padding-bottom: 10px;">
-                Welcome to RunHub Directory!
+                Welcome to RUNHUB Directory!
               </h1>
               <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h2 style="color: #22c55e; margin-top: 0;">🎉 Club Approved!</h2>
                 <p>Hi ${club.contact_name},</p>
-                <p>Great news! <strong>${club.club_name}</strong> has been approved and is now live on RunHub Directory.</p>
+                <p>Great news! <strong>${club.club_name}</strong> has been approved and is now live on RUNHUB Directory.</p>
               </div>
               <div style="margin: 20px 0;">
                 <p>Your club is now visible to runners across Australia who are looking for their perfect running community.</p>
@@ -119,7 +119,7 @@ function getSuccessHtml(club: { id: string; club_name: string; contact_name: str
     <!DOCTYPE html>
     <html>
       <head>
-        <title>RunHub Directory - Club ${action === 'approve' ? 'Approved' : 'Rejected'}</title>
+                    <title>RUNHUB Directory - Club ${action === 'approve' ? 'Approved' : 'Rejected'}</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
@@ -162,7 +162,7 @@ function getSuccessHtml(club: { id: string; club_name: string; contact_name: str
         </style>
       </head>
       <body>
-        <h1 class="header">RunHub Directory Admin</h1>
+                    <h1 class="header">RUNHUB Directory Admin</h1>
         <div class="card">
           <h2 class="${action === 'approve' ? 'success' : 'warning'}">
             ${action === 'approve' ? '✅ Club Approved!' : '⚠️ Club Rejected'}
@@ -187,7 +187,7 @@ function getSuccessHtml(club: { id: string; club_name: string; contact_name: str
         </div>
         
         <div style="text-align: center; margin-top: 30px; color: #666; font-size: 12px;">
-          <p>RunHub Directory Admin System</p>
+                      <p>RUNHUB Directory Admin System</p>
           <p>Processed at ${new Date().toLocaleString()}</p>
         </div>
       </body>
@@ -200,7 +200,7 @@ function getErrorHtml(message: string) {
     <!DOCTYPE html>
     <html>
       <head>
-        <title>RunHub Directory - Error</title>
+                    <title>RUNHUB Directory - Error</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
@@ -229,7 +229,7 @@ function getErrorHtml(message: string) {
         </style>
       </head>
       <body>
-        <h1 class="header">RunHub Directory</h1>
+                    <h1 class="header">RUNHUB Directory</h1>
         <div class="card">
           <h2 class="error">❌ Error</h2>
           <p>${message}</p>

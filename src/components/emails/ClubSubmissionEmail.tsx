@@ -134,7 +134,7 @@ export const ClubSubmissionEmail: React.FC<ClubSubmissionEmailProps> = ({
     </div>
 
     <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px', marginTop: '30px', fontSize: '12px', color: '#666' }}>
-      <p>This email was sent from RunHub Directory club submission system.</p>
+      <p>This email was sent from RUNHUB Directory club submission system.</p>
       <p>Club ID: {club.id}</p>
     </div>
   </div>

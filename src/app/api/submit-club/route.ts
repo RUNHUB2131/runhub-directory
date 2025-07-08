@@ -213,7 +213,7 @@ export async function POST(request: NextRequest) {
     
     try {
       const emailResult = await resend.emails.send({
-        from: 'RunHub Directory <noreply@mail.runhub.co>',
+        from: 'RUNHUB Directory <noreply@mail.runhub.co>',
         to: ['hello@runhub.co'],
         subject: `New Club Submission: ${clubName}`,
         html: `
@@ -268,7 +268,7 @@ export async function POST(request: NextRequest) {
             </div>
 
             <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px; font-size: 12px; color: #666;">
-              <p>This email was sent from RunHub Directory club submission system.</p>
+              <p>This email was sent from RUNHUB Directory club submission system.</p>
               <p>Club ID: ${club.id}</p>
             </div>
           </div>

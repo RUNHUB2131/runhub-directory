@@ -1,4 +1,4 @@
-# RunHub Directory - Quick Reference Guide
+# RUNHUB Directory - Quick Reference Guide
 
 ## Common Development Tasks
 
@@ -255,4 +255,4 @@ console.log('Resend key exists:', !!process.env.RESEND_API_KEY);
 - [ ] Error states handled
 - [ ] Loading states shown
 
-This quick reference covers the most common development patterns and tasks you'll encounter when working with RunHub Directory. 
+This quick reference covers the most common development patterns and tasks you'll encounter when working with RUNHUB Directory. 

@@ -55,7 +55,7 @@ function getSuccessHtml(signup: { first_name?: string }) {
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Newsletter Subscription Confirmed - RunHub Directory</title>
+        <title>Newsletter Subscription Confirmed - RUNHUB Directory</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
@@ -97,11 +97,11 @@ function getSuccessHtml(signup: { first_name?: string }) {
         </style>
       </head>
       <body>
-        <h1 class="header">RunHub Directory</h1>
+        <h1 class="header">RUNHUB Directory</h1>
         <div class="card">
           <h2 class="success">✅ Newsletter Subscription Confirmed!</h2>
           <p>Hi${signup.first_name ? ` ${signup.first_name}` : ''},</p>
-          <p>Thanks for confirming your subscription to the RunHub Directory newsletter!</p>
+          <p>Thanks for confirming your subscription to the RUNHUB Directory newsletter!</p>
           <p>You'll now receive updates about:</p>
           <ul>
             <li>New running clubs added to our directory</li>
@@ -116,7 +116,7 @@ function getSuccessHtml(signup: { first_name?: string }) {
         </div>
         
         <div style="text-align: center; margin-top: 30px; color: #666; font-size: 12px;">
-          <p>Welcome to the RunHub Directory community!</p>
+          <p>Welcome to the RUNHUB Directory community!</p>
         </div>
       </body>
     </html>
@@ -130,7 +130,7 @@ function getErrorHtml(message: string) {
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Newsletter Confirmation Error - RunHub Directory</title>
+        <title>Newsletter Confirmation Error - RUNHUB Directory</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
@@ -169,7 +169,7 @@ function getErrorHtml(message: string) {
         </style>
       </head>
       <body>
-        <h1 class="header">RunHub Directory</h1>
+        <h1 class="header">RUNHUB Directory</h1>
         <div class="card">
           <h2 class="error">❌ Confirmation Error</h2>
           <p>${message}</p>

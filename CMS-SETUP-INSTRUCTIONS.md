@@ -1,4 +1,4 @@
-# RunHub Directory CMS Workflow Setup
+# RUNHUB Directory CMS Workflow Setup
 
 This document explains how to set up the complete CMS workflow for club submissions and approvals.
 
@@ -146,4 +146,4 @@ All clubs are stored in the `run_clubs` table with these statuses:
 
 ## 🎉 You're Done!
 
-Your RunHub Directory now has a complete CMS workflow! Club submissions will be automatically emailed to you for approval, and you can approve/reject with one click. 
+Your RUNHUB Directory now has a complete CMS workflow! Club submissions will be automatically emailed to you for approval, and you can approve/reject with one click. 

@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     // Send contact email
     try {
       const emailResult = await resend.emails.send({
-        from: 'RunHub Directory <noreply@mail.runhub.co>',
+        from: 'RUNHUB Directory <noreply@mail.runhub.co>',
         to: ['hello@runhub.co'],
         subject: `Contact Form: ${formData.subject}`,
         html: `
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
             </div>
 
             <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px; font-size: 12px; color: #666;">
-              <p>This email was sent from the RunHub Directory contact form.</p>
+              <p>This email was sent from the RUNHUB Directory contact form.</p>
               <p>Submitted at: ${new Date().toLocaleString()}</p>
             </div>
           </div>

@@ -1,6 +1,6 @@
 # SEO Sitemap Implementation Guide
 
-This guide explains the complete sitemap implementation for RunHub Directory and how to submit it to Google Search Console.
+This guide explains the complete sitemap implementation for RUNHUB Directory and how to submit it to Google Search Console.
 
 ## 📁 Files Created
 

@@ -1,4 +1,4 @@
-# RunHub Directory - AI Assistant Rules
+# RUNHUB Directory - AI Assistant Rules
 
 ## Project Overview
 

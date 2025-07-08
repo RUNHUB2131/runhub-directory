@@ -1,4 +1,4 @@
-# RunHub Directory - Australian Run Club Directory
+# RUNHUB Directory - Australian Run Club Directory
 
 A modern, responsive web application for discovering local run clubs across Australia. Built with Next.js 14, TypeScript, Tailwind CSS, and integrated with Mapbox for interactive maps.
 
